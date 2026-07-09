@@ -1,0 +1,41 @@
+# Maven
+target/
+*.jar
+*.war
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets — NE JAMAIS COMMITER
+.env
+.env.*
+application-local.yml
+application-secrets.yml
+*.pem
+*.key
+
+# Fichiers générés (reçus PDF stockés localement)
+receipts/
+
+# Fichiers de session Antigravity (contexte de travail, pas du code source)
+.antigravity/
+*.antigravity-session
+
+# Divers
+*.bak
+*.tmp
+*.zip

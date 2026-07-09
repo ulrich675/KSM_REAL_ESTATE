@@ -1,0 +1,218 @@
+export type Categorie = 'Villa' | 'Appartement' | 'Studio';
+export type Etat = 'Disponible' | 'Acheté';
+
+export interface Commentaire {
+  id: string;
+  auteur: string;
+  note: number;
+  texte: string;
+  date: string;
+}
+
+export interface ImagesPieces {
+  label: string;
+  url: string;
+}
+
+export interface Bien {
+  id: string;
+  nom: string;
+  categorie: Categorie;
+  etat: Etat;
+  description: string;
+  prix: number;
+  localisation: string;
+  latitude: number;  // NOUVEAU - pour la carte
+  longitude: number; // NOUVEAU - pour la carte
+  proprietaireId: string;
+  imageMain: string;
+  imagesPieces: ImagesPieces[];
+  likes: number;
+  commentaires: Commentaire[];
+  superficie: number;
+  chambres: number;
+  sallesDeBain: number;
+}
+
+export interface Proprietaire {
+  id: string;
+  nom: string;
+  numero: string;
+  adresse: string;
+  compteActif: boolean;
+}
+
+export interface Client {
+  id: string;
+  nom: string;
+  numero: string;
+  adresse: string;
+  likedBienIds: string[];
+  compteActif: boolean;
+  email?: string;  // AJOUTÉ
+  mdp?: string;    // AJOUTÉ
+}
+
+export interface Achat {
+  id: string;
+  clientId: string;
+  bienId: string;
+  date: string;
+  montant: number;
+  typeVisite?: 'virtuelle' | 'physique';
+  dateVisite?: string;
+  statusVisite?: 'En attente' | 'Confirmée' | 'Refusée';
+}
+
+export const mockProprietaires: Proprietaire[] = [
+  { id: 'prop-1', nom: 'Ulrich Kuate', numero: '+237 690 123 456', adresse: 'Akwa, Douala', compteActif: true },
+  { id: 'prop-2', nom: 'Marcelle Ngo', numero: '+237 677 987 654', adresse: 'Bastos, Yaoundé', compteActif: true },
+  { id: 'prop-3', nom: 'Donald Tchameni', numero: '+237 695 555 444', adresse: 'Bonapriso, Douala', compteActif: true },
+  { id: 'prop-4', nom: 'Sarah Bell', numero: '+237 670 111 222', adresse: 'Golf, Yaoundé', compteActif: false },
+];
+
+export const mockClients: Client[] = [
+  { id: 'client-1', nom: 'Christian Bella', numero: '+237 690 001 002', adresse: 'Denver, Douala', likedBienIds: [], compteActif: true, email: 'client@ksm.cm', mdp: 'client123' },
+  { id: 'client-2', nom: 'Fiona Minka', numero: '+237 671 222 333', adresse: 'Odza, Yaoundé', likedBienIds: [], compteActif: true },
+];
+
+export const mockBiens: Bien[] = [
+  {
+    id: 'bien-1',
+    nom: 'Villa Akwa Prestige',
+    categorie: 'Villa',
+    etat: 'Disponible',
+    description: 'Somptueuse villa de maître située au cœur d\'Akwa. Dotée de finitions haut de gamme, d\'un grand jardin arboré et d\'espaces de réception généreux.',
+    prix: 450000000,
+    localisation: 'Akwa, Douala',
+    latitude: 4.0511,   // Douala
+    longitude: 9.7679,
+    proprietaireId: 'prop-1',
+    imageMain: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    imagesPieces: [
+      { label: 'Salon', url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Cuisine', url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Chambre', url: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Salle de bain', url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&q=80' }
+    ],
+    likes: 42,
+    superficie: 450,
+    chambres: 5,
+    sallesDeBain: 6,
+    commentaires: [
+      { id: 'c-1', auteur: 'Christian Bella', note: 5, texte: 'Magnifique propriété, très bien située !', date: '2026-06-15' }
+    ]
+  },
+  {
+    id: 'bien-2',
+    nom: 'Villa de la Vallée Yaoundé',
+    categorie: 'Villa',
+    etat: 'Disponible',
+    description: 'Au calme, dans un quartier résidentiel de la vallée. Vue panoramique sur les collines, piscine et dépendances.',
+    prix: 380000000,
+    localisation: 'Mvog-Mbi, Yaoundé',
+    latitude: 3.8667,   // Yaoundé
+    longitude: 11.5167,
+    proprietaireId: 'prop-2',
+    imageMain: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80',
+    imagesPieces: [
+      { label: 'Salon', url: 'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Cuisine', url: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Chambre', url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Salle de bain', url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&q=80' }
+    ],
+    likes: 28,
+    superficie: 380,
+    chambres: 4,
+    sallesDeBain: 4,
+    commentaires: []
+  },
+  {
+    id: 'bien-3',
+    nom: 'Villa Akwa Prestige',
+    categorie: 'Villa',
+    etat: 'Disponible',
+    description: 'Somptueuse villa de maître située au cœur d\'Akwa. Dotée de finitions haut de gamme, d\'un grand jardin arboré et d\'espaces de réception généreux.',
+    prix: 450000000,
+    localisation: 'Akwa, Douala',
+    latitude: 4.0511,
+    longitude: 9.7679,
+    proprietaireId: 'prop-1',
+    imageMain: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    imagesPieces: [
+      { label: 'Salon', url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Cuisine', url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Chambre', url: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Salle de bain', url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&q=80' }
+    ],
+    likes: 42,
+    superficie: 450,
+    chambres: 5,
+    sallesDeBain: 6,
+    commentaires: []
+  },
+  {
+    id: 'bien-4',
+    nom: 'Villa Bonamoussadi Moderne',
+    categorie: 'Villa',
+    etat: 'Disponible',
+    description: 'Architecture contemporaine dans un quartier calme. Grand salon, cuisine ouverte et espace extérieur aménagé.',
+    prix: 290000000,
+    localisation: 'Bonamoussadi, Douala',
+    latitude: 4.0833,
+    longitude: 9.6833,
+    proprietaireId: 'prop-3',
+    imageMain: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80',
+    imagesPieces: [
+      { label: 'Salon', url: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Cuisine', url: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Chambre', url: 'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Salle de bain', url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&q=80' }
+    ],
+    likes: 19,
+    superficie: 320,
+    chambres: 4,
+    sallesDeBain: 3,
+    commentaires: []
+  },
+  {
+    id: 'bien-5',
+    nom: 'Villa des Cocotiers Kribi',
+    categorie: 'Villa',
+    etat: 'Acheté', // Déjà vendu
+    description: 'Exceptionnelle villa avec accès privé à la plage, grande piscine et une vue magnifique sur l\'océan.',
+    prix: 380000000,
+    localisation: 'Kribi',
+    latitude: 2.9333,
+    longitude: 9.9167,
+    proprietaireId: 'prop-1',
+    imageMain: 'https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=1200&q=80',
+    imagesPieces: [
+      { label: 'Salon', url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Cuisine', url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Chambre', url: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80' },
+      { label: 'Salle de bain', url: 'https://images.unsplash.com/photo-1584622781564-1d987f7333c1?auto=format&fit=crop&w=800&q=80' }
+    ],
+    likes: 37,
+    superficie: 500,
+    chambres: 5,
+    sallesDeBain: 5,
+    commentaires: [
+      { id: 'c-2', auteur: 'Fiona Minka', note: 4, texte: 'Le coucher de soleil y est magique ! acheté par mon oncle.', date: '2026-05-19' }
+    ]
+  },
+  // ... Ajoutez les coordonnées pour tous les autres biens (bien-6 à bien-20)
+  // Pour gagner du temps, je vous donne les coordonnées pour les principaux quartiers :
+  // Douala: 4.0511, 9.7679
+  // Yaoundé: 3.8667, 11.5167
+  // Kribi: 2.9333, 9.9167
+  // Bastos: 3.8833, 11.5167
+  // Bonapriso: 4.0667, 9.7667
+  // Denver: 4.0833, 9.7667
+  // Odza: 3.8667, 11.5500
+  // Bonamoussadi: 4.0833, 9.6833
+  // Akwa: 4.0500, 9.7667
+  // Ngoa-Ekelle: 3.8833, 11.5333
+  // Mvog-Mbi: 3.8667, 11.5167
+  // Golf: 3.9167, 11.5333
+];

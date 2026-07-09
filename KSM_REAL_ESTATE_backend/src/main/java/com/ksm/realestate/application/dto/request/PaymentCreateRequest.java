@@ -1,0 +1,33 @@
+package com.ksm.realestate.application.dto.request;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+
+/**
+ * Request payload for submitting a payment.
+ *
+ * @author Antigravity
+ * @date 2026-07-08
+ */
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class PaymentCreateRequest {
+
+    @NotNull
+    private Long propertyId;
+
+    @NotNull
+    private Long userId;
+
+    @NotNull
+    private BigDecimal amount;
+
+    @NotNull
+    private String currency;
+}
