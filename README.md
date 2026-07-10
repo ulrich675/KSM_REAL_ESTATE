@@ -158,3 +158,21 @@ Le frontend (`http://localhost:3000`) consomme l'API REST du backend (`http://lo
 ## 5. Licence
 
 Projet interne — à compléter selon les besoins.
+
+
+##  Intégration de la Plateforme Kernel-Core (Yowyob)
+Le backend de **KSM Real Estate** délègue 4 services critiques à la plateforme externe **kernel-core** via une architecture hexagonale (Ports & Adapteurs). Cette approche garantit la découplabilité totale du code métier local face aux API REST externes de la plateforme.
+### Architecture Globale & Flot de Données
+Les communications se font en mode **Serveur à Serveur (S2S)** hautement réactif (via WebFlux/WebClient) selon la structure suivante :
+```mermaid
+graph TD
+    subgraph KSM Backend (Hexagone)
+        Service[Services Applicatifs] -->|Appel Port| Port[Ports Sortants / Ports Interfaces]
+        Adapter[Adaptateurs Kernel-Core] -->|Implémente| Port
+    end
+    subgraph Yowyob Platform (kernel-core)
+        Adapter -->|S2S WebClient| AuthAPI[auth-core : /api/auth/*]
+        Adapter -->|S2S WebClient| BillAPI[billing-core : /api/accounting/*]
+        Adapter -->|S2S WebClient| FileAPI[file-core : /api/v1/tiers/*]
+        Adapter -->|S2S WebClient| RateAPI[ratings-core : /api/v1/ratings/*]
+    end
