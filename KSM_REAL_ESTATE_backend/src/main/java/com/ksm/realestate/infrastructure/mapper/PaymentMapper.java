@@ -14,7 +14,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antigravity
  * @date 2026-07-08
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = KsmMapperConfig.class)
 public interface PaymentMapper {
 
     PaymentMapper INSTANCE = Mappers.getMapper(PaymentMapper.class);

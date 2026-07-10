@@ -5,11 +5,27 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 import { useApp } from '../../context/AppContext';
 import { Bien, ImagesPieces } from '../../data/properties';
 import { fileToBase64 } from '../../utils/fileUtils';
+import { apiService } from '../../services/api';
 import Link from 'next/link';
 import {
     Home, Plus, Edit2, Trash2, Check, X, Users, ShieldAlert,
     Package, Eye, Video, MapPin, Calendar, User, ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
+
+/**
+ * Tente d'uploader un fichier image via le backend (file-core).
+ * Retourne l'URL du fichier distant, ou le fallback base64 local.
+ */
+async function uploadOrBase64(file: File, tierId: string): Promise<string> {
+    try {
+        const result = await apiService.uploadFile(file, tierId, 'PROPERTY_IMAGE', file.name);
+        if (result?.fileUrl) return result.fileUrl;
+        // si le backend retourne un id mais pas d'URL directe, on garde le base64
+    } catch (e) {
+        console.warn('[KSM] upload échoué, fallback base64:', e);
+    }
+    return fileToBase64(file);
+}
 
 const formatPrix = (p: number) => new Intl.NumberFormat('fr-FR').format(p) + ' FCFA';
 
@@ -720,8 +736,10 @@ function BienForm({ form, setForm, onSave, onCancel, isEdit }: BienFormProps) {
                         className="form-input"
                         onChange={async (e) => {
                             if (e.target.files && e.target.files[0]) {
-                                const base64 = await fileToBase64(e.target.files[0]);
-                                setForm(f => ({ ...f, imageMain: base64 }));
+                                // tierId = id du bien (ou un identifiant temporaire)
+                                const tierId = `prop-main-${Date.now()}`;
+                                const url = await uploadOrBase64(e.target.files[0], tierId);
+                                setForm(f => ({ ...f, imageMain: url }));
                             }
                         }}
                         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '7px 14px', color: 'var(--text-white)' }}
@@ -754,9 +772,10 @@ function BienForm({ form, setForm, onSave, onCancel, isEdit }: BienFormProps) {
                                     type="file" accept="image/*"
                                     onChange={async (e) => {
                                         if (e.target.files && e.target.files[0]) {
-                                            const base64 = await fileToBase64(e.target.files[0]);
+                                            const tierId = `prop-piece-${idx}-${Date.now()}`;
+                                            const url = await uploadOrBase64(e.target.files[0], tierId);
                                             const newIP = [...form.imagesPieces];
-                                            newIP[idx].url = base64;
+                                            newIP[idx].url = url;
                                             setForm(f => ({ ...f, imagesPieces: newIP }));
                                         }
                                     }}

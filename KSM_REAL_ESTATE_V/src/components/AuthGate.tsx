@@ -12,34 +12,47 @@ export default function AuthGate() {
     const [mdp, setMdp] = useState('');
     const [showMdp, setShowMdp] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const [nom, setNom] = useState('');
     const [numero, setNumero] = useState('');
     const [adresse, setAdresse] = useState('');
 
-    const handleLoginSubmit = (e: React.FormEvent) => {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
         if (!email || !mdp) {
             setErrorMsg('Veuillez remplir tous les champs.');
             return;
         }
-        const success = login(email, mdp);
-        if (!success) {
-            setErrorMsg('Identifiants invalides. Veuillez réessayer.');
+        setIsLoading(true);
+        try {
+            const result = await login(email, mdp);
+            if (!result.success) {
+                setErrorMsg(result.message === 'MFA_REQUIRED'
+                    ? 'Un code MFA est requis. Fonctionnalité en cours d\'intégration.'
+                    : result.message || 'Identifiants invalides. Veuillez réessayer.');
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleRegisterSubmit = (e: React.FormEvent) => {
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
         if (!email || !mdp || !nom || !numero || !adresse) {
             setErrorMsg('Veuillez remplir tous les champs.');
             return;
         }
-        const result = register({ nom, email, mdp, numero, adresse });
-        if (!result.success) {
-            setErrorMsg(result.message || 'Cet e-mail est déjà utilisé.');
+        setIsLoading(true);
+        try {
+            const result = await register({ nom, email, mdp, numero, adresse });
+            if (!result.success) {
+                setErrorMsg(result.message || 'Cet e-mail est déjà utilisé.');
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -185,11 +198,15 @@ export default function AuthGate() {
                         </div>
                     </div>
 
-                    <button type="submit" style={{
-                        background: 'var(--accent-orange)', color: 'white', border: 'none', padding: '12px',
-                        borderRadius: 'var(--radius-md)', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '10px',
+                    <button type="submit" disabled={isLoading} style={{
+                        background: isLoading ? 'rgba(249,115,22,0.5)' : 'var(--accent-orange)',
+                        color: 'white', border: 'none', padding: '12px',
+                        borderRadius: 'var(--radius-md)', fontSize: '14px', fontWeight: '700',
+                        cursor: isLoading ? 'not-allowed' : 'pointer', marginTop: '10px',
                     }}>
-                        {mode === 'login' ? 'Se connecter' : "S'inscrire"}
+                        {isLoading
+                            ? (mode === 'login' ? 'Connexion...' : 'Inscription...')
+                            : (mode === 'login' ? 'Se connecter' : "S'inscrire")}
                     </button>
                 </form>
 
