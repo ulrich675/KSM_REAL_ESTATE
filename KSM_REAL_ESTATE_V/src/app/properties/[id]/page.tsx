@@ -1,15 +1,16 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useApp } from '../../../context/AppContext';
 import { calculerPrixVisiteVirtuelle } from '../../../utils/pricing';
 import DateValidator from '../../../components/DateValidator';
-import { useState } from 'react';
 import {
   MapPin, BedDouble, Bath, Maximize2, Heart, Star,
-  ShoppingCart, Eye, Calendar, Send,
+  ShoppingCart, Eye, Calendar, Send, CreditCard, Banknote, Download, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { printHtmlReceipt } from '../../../utils/fileUtils';
 
 // Dynamic import to avoid SSR crash of Leaflet (window is not defined)
 const PropertyMap = dynamic(() => import('../../../components/PropertyMap'), { ssr: false });
@@ -22,7 +23,7 @@ export default function PropertyDetailsPage() {
   const {
     biens, currentUser, achats,
     demanderVisitePhysique, acheterVisiteVirtuelle, acheterBien,
-    addCommentaire, toggleLike, clients,
+    addCommentaire, toggleLike, clients, proprietaires,
   } = useApp();
 
   const bien = biens.find(b => b.id === id);
@@ -31,7 +32,20 @@ export default function PropertyDetailsPage() {
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [commentTexte, setCommentTexte] = useState('');
   const [commentNote, setCommentNote] = useState(5);
-  const [activeImage, setActiveImage] = useState<string | null>(null);
+
+  // Carousel State
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+
+  // Modal State for Payment
+  const [showPaymentModal, setShowPaymentModal] = useState<{ type: 'Achat' | 'VisiteVirtuelle'; prix: number } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Virement'>('Cash');
+  const [receiptGenerated, setReceiptGenerated] = useState<{ html: string } | null>(null);
+
+  // Combine images array for carousel
+  const allImages = React.useMemo(() => {
+    if (!bien) return [];
+    return [{ label: 'Principal', url: bien.imageMain }, ...bien.imagesPieces];
+  }, [bien]);
 
   if (!bien) {
     return (
@@ -44,15 +58,25 @@ export default function PropertyDetailsPage() {
     );
   }
 
-  const mainImg = activeImage || bien.imageMain;
-  const prixVisiteVirtuelle = calculerPrixVisiteVirtuelle(bien.likes);
+  const mainImgUrl = allImages[activeImageIndex]?.url || bien.imageMain;
+  const mainImgLabel = allImages[activeImageIndex]?.label || 'Image';
+  const totalAchatsClient = achats.filter(a => a.clientId === currentUser?.id && !a.typeVisite && a.statusVisite !== 'Refusée').length;
+  const prixVisiteVirtuelle = calculerPrixVisiteVirtuelle(bien.likes, totalAchatsClient);
   const currentClient = clients.find(c => c.id === currentUser?.id);
   const isLiked = currentClient?.likedBienIds.includes(bien.id) || false;
   const vendu = bien.etat === 'Acheté';
 
+  // Carousel Nav
+  const handlePrevImage = () => {
+    setActiveImageIndex(prev => prev === 0 ? allImages.length - 1 : prev - 1);
+  };
+  const handleNextImage = () => {
+    setActiveImageIndex(prev => prev === allImages.length - 1 ? 0 : prev + 1);
+  };
+
   const requireAuth = (action: () => void) => {
     if (!currentUser) {
-      router.push(`/connexion?redirect=/properties/${bien.id}`);
+      router.push(`/connexion?redirect=/properties/\${bien.id}`);
       return;
     }
     action();
@@ -66,16 +90,144 @@ export default function PropertyDetailsPage() {
     setDateVisite('');
   });
 
-  const handleVisiteVirtuelle = () => requireAuth(async () => {
-    await acheterVisiteVirtuelle(currentUser!.id, bien.id);
-    setMessage({ text: prixVisiteVirtuelle === 0 ? '🎉 Visite virtuelle GRATUITE activée !' : `💰 Visite virtuelle achetée (${formatPrix(prixVisiteVirtuelle)})`, ok: true });
+  const handleActionClick = (type: 'Achat' | 'VisiteVirtuelle', prix: number) => requireAuth(() => {
+    if (vendu && type === 'Achat') return;
+    if (prix === 0) {
+      if (type === 'VisiteVirtuelle') handleVisiteVirtuelleDirect();
+      return;
+    }
+    setReceiptGenerated(null);
+    setShowPaymentModal({ type, prix });
   });
 
-  const handleAchat = () => requireAuth(async () => {
-    if (vendu) return;
-    const result = await acheterBien(currentUser!.id, bien.id);
-    if (result) setMessage({ text: `🏠 Bien acheté avec succès ! (${formatPrix(result.montant)})`, ok: true });
-  });
+  const generateReceiptHtml = (type: string, prix: number, title: string, method: string) => {
+    const prop = proprietaires.find(p => p.id === bien.proprietaireId);
+    const client = clients.find(c => c.id === currentUser?.id);
+    const refNum = `KSM-${Date.now().toString(36).toUpperCase()}`;
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Reçu KSM Real Estate - ${refNum}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0b0f19; padding: 0; }
+    .page { background: #0f1629; max-width: 680px; margin: 0 auto; min-height: 100vh; }
+    .top-bar { background: linear-gradient(135deg, #f97316, #7c3aed); height: 6px; }
+    .header { padding: 40px 48px 32px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    .logo-circle { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f97316, #7c3aed); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; font-size: 22px; }
+    .logo-text { font-size: 22px; font-weight: 800; color: #fff; }
+    .logo-text span { color: #f97316; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+    .ref { margin-top: 10px; font-size: 12px; color: #64748b; }
+    .body { padding: 32px 48px; }
+    .amount-box { background: linear-gradient(135deg, rgba(249,115,22,0.12), rgba(124,58,237,0.12)); border: 1px solid rgba(249,115,22,0.3); border-radius: 14px; padding: 28px; text-align: center; margin-bottom: 32px; }
+    .amount-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .amount-value { font-size: 38px; font-weight: 800; color: #f97316; line-height: 1; }
+    .amount-method { margin-top: 10px; font-size: 13px; color: #94a3b8; }
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 11px; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+    .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px 20px; }
+    .row { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .row:last-child { border-bottom: none; }
+    .row-label { font-size: 13px; color: #64748b; }
+    .row-value { font-size: 13px; color: #e2e8f0; font-weight: 600; text-align: right; max-width: 60%; }
+    .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 24px 0; }
+    .footer { padding: 24px 48px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08); }
+    .footer p { font-size: 12px; color: #475569; line-height: 1.8; }
+    .footer .hotline { color: #f97316; font-weight: 600; }
+    @media print { body { background: white; } .page { background: white; } .card { background: #f8fafc; border-color: #e2e8f0; } .row-value { color: #0f172a; } .row-label { color: #475569; } .amount-value { color: #ea580c; } .logo-text { color: #0f172a; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top-bar"></div>
+    <div class="header">
+      <div class="logo-row">
+        <div class="logo-circle">K</div>
+        <div class="logo-text">KSM <span>REAL ESTATE</span></div>
+      </div>
+      <div class="badge">✓ Paiement Confirmé</div>
+      <p class="ref">Référence : <strong style="color:#94a3b8">${refNum}</strong> &nbsp;|&nbsp; ${new Date().toLocaleString('fr-FR')}</p>
+    </div>
+    <div class="body">
+      <div class="amount-box">
+        <div class="amount-label">${type === 'Achat' ? 'Montant de l\'achat' : 'Visite virtuelle'}</div>
+        <div class="amount-value">${formatPrix(prix)}</div>
+        <div class="amount-method">Réglé par ${method}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🏠 Bien Immobilier</div>
+        <div class="card">
+          <div class="row"><span class="row-label">Désignation</span><span class="row-value">${title}</span></div>
+          <div class="row"><span class="row-label">Type de transaction</span><span class="row-value">${type === 'Achat' ? 'Achat de propriété' : 'Accès visite virtuelle'}</span></div>
+          <div class="row"><span class="row-label">Localisation</span><span class="row-value">${bien.localisation}</span></div>
+          <div class="row"><span class="row-label">Superficie</span><span class="row-value">${bien.superficie} m²</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">👤 Acheteur (Client)</div>
+        <div class="card">
+          <div class="row"><span class="row-label">Nom complet</span><span class="row-value">${client?.nom || currentUser?.nom || '—'}</span></div>
+          <div class="row"><span class="row-label">Email</span><span class="row-value">${currentUser?.email || '—'}</span></div>
+          <div class="row"><span class="row-label">Téléphone</span><span class="row-value">${(client as any)?.numero || '—'}</span></div>
+          <div class="row"><span class="row-label">ID Client</span><span class="row-value">${currentUser?.id || '—'}</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🏦 Propriétaire (Vendeur)</div>
+        <div class="card">
+          <div class="row"><span class="row-label">Nom complet</span><span class="row-value">${prop?.nom || '—'}</span></div>
+          <div class="row"><span class="row-label">Téléphone</span><span class="row-value">${prop?.numero || '—'}</span></div>
+          <div class="row"><span class="row-label">Email</span><span class="row-value">${prop?.email || '—'}</span></div>
+          <div class="row"><span class="row-label">ID Propriétaire</span><span class="row-value">${bien.proprietaireId}</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:10px;padding:16px 20px">
+        <span style="font-size:15px;color:#94a3b8">TOTAL PAYÉ</span>
+        <span style="font-size:22px;font-weight:800;color:#f97316">${formatPrix(prix)}</span>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Ce document est généré automatiquement et vaut reçu officiel.<br>
+      Pour toute réclamation : <span class="hotline">contact@ksm.immo</span><br>
+      <span style="color:#334155">KSM Real Estate — Plateforme immobilière de confiance</span></p>
+    </div>
+  </div>
+</body>
+</html>`;
+  };
+
+  const processPayment = async () => {
+    if (!showPaymentModal) return;
+    const { type, prix } = showPaymentModal;
+
+    let result;
+    if (type === 'Achat') {
+      result = await acheterBien(currentUser!.id, bien.id);
+    } else {
+      result = await acheterVisiteVirtuelle(currentUser!.id, bien.id);
+    }
+
+    if (result) {
+      const htmlInfo = generateReceiptHtml(type, prix, bien.nom, paymentMethod);
+      setReceiptGenerated({ html: htmlInfo });
+      setMessage({ text: `✅ Paiement validé (\${paymentMethod}) !`, ok: true });
+    }
+  };
+
+  const handleVisiteVirtuelleDirect = async () => {
+    await acheterVisiteVirtuelle(currentUser!.id, bien.id);
+    setMessage({ text: '🎉 Visite virtuelle GRATUITE activée !', ok: true });
+  };
 
   const handleComment = () => requireAuth(async () => {
     if (!commentTexte.trim()) return;
@@ -92,10 +244,26 @@ export default function PropertyDetailsPage() {
       {/* ── HERO IMAGE + GALLERY */}
       <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '32px' }}>
         <img
-          src={mainImg}
+          src={mainImgUrl}
           alt={bien.nom}
           style={{ width: '100%', height: '480px', objectFit: 'cover' }}
         />
+
+        {/* Carousel controls */}
+        {allImages.length > 1 && (
+          <>
+            <button onClick={handlePrevImage} style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}>
+              <ChevronLeft size={24} />
+            </button>
+            <button onClick={handleNextImage} style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}>
+              <ChevronRight size={24} />
+            </button>
+            <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: 600 }}>
+              {activeImageIndex + 1} / {allImages.length} • {mainImgLabel}
+            </div>
+          </>
+        )}
+
         {/* Overlay badge */}
         <div style={{ position: 'absolute', top: 20, left: 20, display: 'flex', gap: '10px' }}>
           <span style={{ background: 'rgba(11,15,25,0.85)', color: 'var(--text-white)', padding: '6px 14px', borderRadius: 999, fontSize: '13px', fontWeight: 700 }}>
@@ -109,29 +277,6 @@ export default function PropertyDetailsPage() {
           </span>
         </div>
       </div>
-
-      {/* Thumbnails gallery */}
-      {bien.imagesPieces.length > 0 && (
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          <img
-            src={bien.imageMain}
-            alt="Principal"
-            onClick={() => setActiveImage(bien.imageMain)}
-            style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8, cursor: 'pointer', border: activeImage === bien.imageMain || !activeImage ? '2px solid var(--accent-orange)' : '2px solid transparent' }}
-          />
-          {bien.imagesPieces.map(img => (
-            <div key={img.label} style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-              <img
-                src={img.url}
-                alt={img.label}
-                onClick={() => setActiveImage(img.url)}
-                style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8, cursor: 'pointer', border: activeImage === img.url ? '2px solid var(--accent-orange)' : '2px solid transparent' }}
-              />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{img.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* ── MAIN GRID */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '40px', alignItems: 'start' }}>
@@ -157,9 +302,9 @@ export default function PropertyDetailsPage() {
           {/* Specs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
             {[
-              { icon: <Maximize2 size={18} />, label: `${bien.superficie} m²` },
-              { icon: <BedDouble size={18} />, label: `${bien.chambres} chambres` },
-              { icon: <Bath size={18} />, label: `${bien.sallesDeBain} sdb` },
+              { icon: <Maximize2 size={18} />, label: `\${bien.superficie} m²` },
+              { icon: <BedDouble size={18} />, label: `\${bien.chambres} chambres` },
+              { icon: <Bath size={18} />, label: `\${bien.sallesDeBain} sdb` },
             ].map(s => (
               <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <span style={{ color: 'var(--accent-orange)' }}>{s.icon}</span>
@@ -193,16 +338,18 @@ export default function PropertyDetailsPage() {
               <div className="glass-card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span style={{ fontSize: '14px', color: 'var(--text-gray)' }}>Note :</span>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <Star
-                      key={n}
-                      size={22}
-                      fill={n <= commentNote ? '#f59e0b' : 'transparent'}
-                      color={n <= commentNote ? '#f59e0b' : 'var(--text-gray)'}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => setCommentNote(n)}
-                    />
-                  ))}
+                  <select
+                    value={commentNote}
+                    onChange={(e) => setCommentNote(Number(e.target.value))}
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '8px 12px', color: 'var(--text-white)' }}
+                  >
+                    <option value={5} style={{ color: '#000' }}>5 Étoiles</option>
+                    <option value={4} style={{ color: '#000' }}>4 Étoiles</option>
+                    <option value={3} style={{ color: '#000' }}>3 Étoiles</option>
+                    <option value={2} style={{ color: '#000' }}>2 Étoiles</option>
+                    <option value={1} style={{ color: '#000' }}>1 Étoile</option>
+                    <option value={0} style={{ color: '#000' }}>0 Étoile</option>
+                  </select>
                 </div>
                 <textarea
                   className="form-input"
@@ -222,7 +369,7 @@ export default function PropertyDetailsPage() {
             ) : (
               <div className="glass-card" style={{ padding: '16px', marginBottom: '20px', textAlign: 'center' }}>
                 <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>
-                  <span style={{ cursor: 'pointer', color: 'var(--accent-orange)', fontWeight: 600 }} onClick={() => router.push(`/connexion?redirect=/properties/${bien.id}`)}>
+                  <span style={{ cursor: 'pointer', color: 'var(--accent-orange)', fontWeight: 600 }} onClick={() => router.push(`/connexion?redirect=/properties/\${bien.id}`)}>
                     Connectez-vous
                   </span>{' '}pour laisser un commentaire.
                 </p>
@@ -258,7 +405,7 @@ export default function PropertyDetailsPage() {
 
             {!vendu ? (
               <button
-                onClick={handleAchat}
+                onClick={() => handleActionClick('Achat', bien.prix)}
                 style={{ width: '100%', padding: '13px', background: 'var(--accent-orange)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: '700', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 <ShoppingCart size={18} /> Acheter ce bien
@@ -280,10 +427,10 @@ export default function PropertyDetailsPage() {
                 </p>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                {bien.likes} ♥ × 500 = {bien.likes * 500} FCFA de réduction
+                {totalAchatsClient === 0 ? "Visite basée sur le total d'achats" : `\${totalAchatsClient} achat(s) antérieur(s)`}
               </p>
               <button
-                onClick={handleVisiteVirtuelle}
+                onClick={() => handleActionClick('VisiteVirtuelle', prixVisiteVirtuelle)}
                 style={{ width: '100%', padding: '11px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 10, fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 <Eye size={16} /> Acheter la visite virtuelle
@@ -317,7 +464,7 @@ export default function PropertyDetailsPage() {
             <div style={{
               padding: '12px 16px',
               background: message.ok ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
-              border: `1px solid ${message.ok ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+              border: `1px solid \${message.ok ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
               borderRadius: 10,
               color: message.ok ? '#22c55e' : '#ef4444',
               fontSize: '14px',
@@ -328,6 +475,61 @@ export default function PropertyDetailsPage() {
           )}
         </div>
       </div>
+
+      {/* PAYMENT MODAL */}
+      {showPaymentModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div className="glass-card" style={{ width: 400, padding: 30, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h3 style={{ color: 'var(--text-white)', textAlign: 'center', fontSize: 24 }}>Paiement Sécurisé</h3>
+
+            <p style={{ color: 'var(--text-gray)', textAlign: 'center', fontSize: 14 }}>
+              Objet : {showPaymentModal.type === 'Achat' ? 'Achat du bien' : 'Visite Virtuelle'}<br />
+              Montant : <strong style={{ color: 'var(--accent-orange)' }}>{formatPrix(showPaymentModal.prix)}</strong>
+            </p>
+
+            {!receiptGenerated ? (
+              <>
+                <h4 style={{ color: 'var(--text-white)', fontSize: 16 }}>Mode de paiement</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <button
+                    onClick={() => setPaymentMethod('Cash')}
+                    style={{ padding: 12, borderRadius: 8, border: paymentMethod === 'Cash' ? '2px solid var(--accent-orange)' : '1px solid var(--border-color)', background: paymentMethod === 'Cash' ? 'rgba(249,115,22,0.1)' : 'rgba(255,255,255,0.05)', color: paymentMethod === 'Cash' ? 'var(--accent-orange)' : 'var(--text-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontWeight: 600 }}
+                  >
+                    <Banknote size={18} /> Cash
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('Virement')}
+                    style={{ padding: 12, borderRadius: 8, border: paymentMethod === 'Virement' ? '2px solid var(--accent-orange)' : '1px solid var(--border-color)', background: paymentMethod === 'Virement' ? 'rgba(249,115,22,0.1)' : 'rgba(255,255,255,0.05)', color: paymentMethod === 'Virement' ? 'var(--accent-orange)' : 'var(--text-white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontWeight: 600 }}
+                  >
+                    <CreditCard size={18} /> Virement
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                  <button onClick={() => setShowPaymentModal(null)} style={{ flex: 1, padding: 12, background: 'rgba(255,255,255,0.05)', color: 'var(--text-gray)', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={processPayment} style={{ flex: 1, padding: 12, background: 'var(--accent-orange)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Valider</button>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 15, alignItems: 'center' }}>
+                <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(34,197,94,0.2)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingCart size={30} />
+                </div>
+                <p style={{ color: '#22c55e', fontWeight: 700, fontSize: 18 }}>Paiement réussi !</p>
+
+                <button onClick={() => printHtmlReceipt(receiptGenerated.html)} style={{ width: '100%', padding: '12px', background: 'var(--accent-purple)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Download size={18} /> Imprimer/Enregistrer en PDF
+                </button>
+                <button onClick={() => { setShowPaymentModal(null); setReceiptGenerated(null); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-gray)', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Fermer</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

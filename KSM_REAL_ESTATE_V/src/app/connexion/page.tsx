@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthGate from '../../components/AuthGate';
 import { useApp } from '../../context/AppContext';
 
-export default function ConnexionPage() {
+function ConnexionContent() {
   const { currentUser } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,4 +22,12 @@ export default function ConnexionPage() {
   }
 
   return <AuthGate />;
+}
+
+export default function ConnexionPage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: 'center', padding: '100px', color: 'var(--text-white)' }}>Chargement en cours...</div>}>
+      <ConnexionContent />
+    </Suspense>
+  );
 }

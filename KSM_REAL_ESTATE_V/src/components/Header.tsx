@@ -4,10 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '../context/AppContext';
-import { Home, Compass, BarChart, User, Users, ShieldAlert } from 'lucide-react';
+import { Home, Compass, BarChart, User, Users, ShieldAlert, Sun, Moon, Scale } from 'lucide-react';
 
 export default function Header() {
-    const { currentUser, logout, compareIds, visitesEnAttenteCount } = useApp();
+    const { currentUser, logout, compareIds, visitesEnAttenteCount, theme, toggleTheme } = useApp();
     const pathname = usePathname();
 
     const navLinks = [
@@ -97,15 +97,35 @@ export default function Header() {
                             fontSize: '13px',
                             fontWeight: '600',
                             border: '1px solid rgba(99, 102, 241, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
                         }}
                     >
-                        Comparer ({compareIds.length})
+                        <Scale size={16} /> Comparer ({compareIds.length})
                     </Link>
                 )}
             </nav>
 
             {/* Auth controls */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <button
+                    onClick={toggleTheme}
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-gray)',
+                        padding: '8px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.2s',
+                    }}
+                >
+                    {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
                 {currentUser ? (
                     <>
                         <div style={{

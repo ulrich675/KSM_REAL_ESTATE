@@ -3,8 +3,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Bien, Proprietaire, Client, Achat, mockBiens, mockProprietaires, mockClients } from '../data/properties';
 import { apiService } from '../services/api';
+import { calculerPrixVisiteVirtuelle } from '../utils/pricing';
 
 export type Role = 'client' | 'proprietaire' | 'admin';
+export type Theme = 'dark' | 'light';
 
 export interface UserSession {
     email: string;
@@ -14,10 +16,12 @@ export interface UserSession {
 }
 
 interface AppContextType {
+    theme: Theme;
+    toggleTheme: () => void;
     role: Role;
     setRole: (role: Role) => void;
     currentUser: UserSession | null;
-    login: (email: string, mdp: string) => boolean;
+    login: (email: string, mdp: string) => { success: boolean; message?: string };
     register: (data: { nom: string; email: string; mdp: string; numero: string; adresse: string }) => { success: boolean; message?: string };
     logout: () => void;
     biens: Bien[];
@@ -25,6 +29,7 @@ interface AppContextType {
     clients: Client[];
     achats: Achat[];
     compareIds: string[];
+    pendingProprietorRequests: string[];
     toggleCompare: (id: string) => void;
     clearCompare: () => void;
     toggleLike: (bienId: string) => void;
@@ -38,6 +43,7 @@ interface AppContextType {
     validerVisite: (achatId: string, approuve: boolean) => Promise<void>;
     demanderDevenirProprietaire: (clientId: string) => void;
     approuverProprietaire: (clientId: string) => Promise<void>;
+    rejeterProprietaire: (clientId: string) => Promise<void>;
     toggleCompteActif: (type: 'client' | 'proprietaire', id: string) => Promise<void>;
     visitesEnAttenteCount: number;
 }
@@ -45,6 +51,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+    const [theme, setTheme] = useState<Theme>('dark');
     const [role, setRole] = useState<Role>('client');
     const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
     const [biens, setBiens] = useState<Bien[]>([]);
@@ -58,31 +65,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const loadInitialData = async () => {
             if (typeof window !== 'undefined') {
-                // Toujours reseed les données de référence pour garantir la cohérence
-                localStorage.setItem('ksm_biens', JSON.stringify(mockBiens));
-                localStorage.setItem('ksm_proprietaires', JSON.stringify(mockProprietaires));
+                try {
+                    const savedTheme = localStorage.getItem('ksm_theme') as Theme;
+                    if (savedTheme) setTheme(savedTheme);
 
-                if (!localStorage.getItem('ksm_clients')) {
+                    if (!localStorage.getItem('ksm_biens')) {
+                        localStorage.setItem('ksm_biens', JSON.stringify(mockBiens));
+                    }
+                    if (!localStorage.getItem('ksm_proprietaires')) {
+                        localStorage.setItem('ksm_proprietaires', JSON.stringify(mockProprietaires));
+                    }
+
+                    if (!localStorage.getItem('ksm_clients')) {
+                        localStorage.setItem('ksm_clients', JSON.stringify(mockClients));
+                    } else {
+                        const existing: Client[] = JSON.parse(localStorage.getItem('ksm_clients')!);
+                        const merged = existing.map(ec => {
+                            const mock = mockClients.find(mc => mc.id === ec.id);
+                            return mock ? { ...ec, email: mock.email, mdp: mock.mdp } : ec;
+                        });
+                        localStorage.setItem('ksm_clients', JSON.stringify(merged));
+                    }
+
+                    if (!localStorage.getItem('ksm_achats')) {
+                        localStorage.setItem('ksm_achats', JSON.stringify([]));
+                    }
+
+                    const requestsStr = localStorage.getItem('ksm_pending_props');
+                    if (requestsStr) {
+                        setPendingProprietorRequests(JSON.parse(requestsStr));
+                    }
+
+                    const sessionStr = localStorage.getItem('ksm_session');
+                    if (sessionStr) {
+                        const session = JSON.parse(sessionStr) as UserSession;
+                        setCurrentUser(session);
+                        setRole(session.role);
+                    }
+                } catch (e) {
+                    console.error("Erreur lors du chargement des données locales. Réinitialisation...", e);
+                    localStorage.removeItem('ksm_biens');
+                    localStorage.removeItem('ksm_proprietaires');
+                    localStorage.removeItem('ksm_clients');
+                    localStorage.removeItem('ksm_achats');
+                    localStorage.removeItem('ksm_pending_props');
+                    localStorage.removeItem('ksm_session');
+
+                    localStorage.setItem('ksm_biens', JSON.stringify(mockBiens));
+                    localStorage.setItem('ksm_proprietaires', JSON.stringify(mockProprietaires));
                     localStorage.setItem('ksm_clients', JSON.stringify(mockClients));
-                } else {
-                    // Merge: ajouter email/mdp aux clients qui n'en ont pas
-                    const existing: Client[] = JSON.parse(localStorage.getItem('ksm_clients')!);
-                    const merged = existing.map(ec => {
-                        const mock = mockClients.find(mc => mc.id === ec.id);
-                        return mock ? { ...ec, email: mock.email, mdp: mock.mdp } : ec;
-                    });
-                    localStorage.setItem('ksm_clients', JSON.stringify(merged));
-                }
-
-                if (!localStorage.getItem('ksm_achats')) {
                     localStorage.setItem('ksm_achats', JSON.stringify([]));
-                }
-
-                const sessionStr = localStorage.getItem('ksm_session');
-                if (sessionStr) {
-                    const session = JSON.parse(sessionStr) as UserSession;
-                    setCurrentUser(session);
-                    setRole(session.role);
                 }
             }
 
@@ -102,40 +134,53 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadInitialData();
     }, []);
 
-    // 2. Auth Actions - LOGIN AMÉLIORÉ
-    const login = (email: string, mdp: string): boolean => {
-        let matchedUser: UserSession | null = null;
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+    }, [theme]);
 
-        // Admin en dur
+    const toggleTheme = () => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        localStorage.setItem('ksm_theme', newTheme);
+    };
+
+    // 2. Auth Actions - LOGIN AMÉLIORÉ
+    const login = (email: string, mdp: string): { success: boolean; message?: string } => {
+        let matchedUser: UserSession | null = null;
+        let isActif = true;
+
         if (email === 'admin@ksm.cm' && mdp === 'admin123') {
             matchedUser = { email, nom: 'Admin KSM', role: 'admin', id: 'admin-1' };
         } else {
-            // Chercher parmi les propriétaires (en mémoire)
             const foundProp = proprietaires.find(p => p.email === email && p.mdp === mdp);
             if (foundProp) {
-                if (!foundProp.compteActif) return false;
+                if (foundProp.compteActif === false) isActif = false;
                 matchedUser = { email, nom: foundProp.nom, role: 'proprietaire', id: foundProp.id };
             } else {
-                // Chercher parmi les clients (en mémoire)
                 const foundClient = clients.find(c => (c as any).email === email && (c as any).mdp === mdp);
                 if (foundClient) {
-                    if (!foundClient.compteActif) return false;
+                    if (foundClient.compteActif === false) isActif = false;
                     matchedUser = { email: (foundClient as any).email, nom: foundClient.nom, role: 'client', id: foundClient.id };
                 }
             }
         }
 
         if (matchedUser) {
+            if (!isActif && matchedUser.role !== 'admin') {
+                return { success: false, message: "Votre compte a été désactivé par l'administrateur." };
+            }
             setCurrentUser(matchedUser);
             setRole(matchedUser.role);
             localStorage.setItem('ksm_session', JSON.stringify(matchedUser));
-            return true;
+            return { success: true };
         }
 
-        return false;
+        return { success: false, message: "Email ou mot de passe incorrect." };
     };
 
-    // REGISTER - NOUVELLE FONCTION
+    // REGISTER
     const register = (data: { nom: string; email: string; mdp: string; numero: string; adresse: string }): { success: boolean; message?: string } => {
         const emailExists =
             clients.some(c => (c as any).email === data.email) ||
@@ -144,9 +189,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             data.email === 'ulrich@ksm.cm' ||
             data.email === 'client@ksm.cm';
 
-        if (emailExists) {
-            return { success: false, message: 'Cet e-mail est déjà utilisé.' };
-        }
+        if (emailExists) return { success: false, message: 'Cet e-mail est déjà utilisé.' };
 
         const newClient: Client = {
             id: `client-${Date.now()}`,
@@ -162,12 +205,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setClients(prev => [...prev, newClient]);
         apiService.saveClient(newClient);
 
-        const session: UserSession = {
-            email: data.email,
-            nom: data.nom,
-            role: 'client',
-            id: newClient.id
-        };
+        const session: UserSession = { email: data.email, nom: data.nom, role: 'client', id: newClient.id };
         setCurrentUser(session);
         setRole('client');
         localStorage.setItem('ksm_session', JSON.stringify(session));
@@ -184,9 +222,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // 3. UI Helpers
     const toggleCompare = (id: string) => {
         setCompareIds((prev) => {
-            if (prev.includes(id)) {
-                return prev.filter((item) => item !== id);
-            }
+            if (prev.includes(id)) return prev.filter((item) => item !== id);
             if (prev.length >= 3) return prev;
             return [...prev, id];
         });
@@ -201,24 +237,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
 
         const activeClientId = currentUser.id;
-
         const updatedClients = clients.map((cl) => {
             if (cl.id === activeClientId) {
                 const isLiked = cl.likedBienIds.includes(bienId);
                 return {
                     ...cl,
-                    likedBienIds: isLiked
-                        ? cl.likedBienIds.filter((id) => id !== bienId)
-                        : [...cl.likedBienIds, bienId],
+                    likedBienIds: isLiked ? cl.likedBienIds.filter((id) => id !== bienId) : [...cl.likedBienIds, bienId],
                 };
             }
             return cl;
         });
 
         const targetClient = updatedClients.find(c => c.id === activeClientId);
-        if (targetClient) {
-            await apiService.saveClient(targetClient);
-        }
+        if (targetClient) await apiService.saveClient(targetClient);
         setClients(updatedClients);
 
         const updatedBiens = biens.map((b) => {
@@ -234,9 +265,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
 
         const targetBien = updatedBiens.find(b => b.id === bienId);
-        if (targetBien) {
-            await apiService.saveBien(targetBien);
-        }
+        if (targetBien) await apiService.saveBien(targetBien);
         setBiens(updatedBiens);
     };
 
@@ -244,25 +273,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const newComment = {
             id: `comment-${Date.now()}`,
             auteur: auteur || currentUser?.nom || 'Visiteur Anonyme',
-            note,
-            texte,
+            note, texte,
             date: new Date().toISOString().split('T')[0],
         };
 
-        const updatedBiens = biens.map((b) => {
-            if (b.id === bienId) {
-                return {
-                    ...b,
-                    commentaires: [newComment, ...b.commentaires],
-                };
-            }
-            return b;
-        });
-
+        const updatedBiens = biens.map((b) => (b.id === bienId ? { ...b, commentaires: [newComment, ...b.commentaires] } : b));
         const targetBien = updatedBiens.find(b => b.id === bienId);
-        if (targetBien) {
-            await apiService.saveBien(targetBien);
-        }
+        if (targetBien) await apiService.saveBien(targetBien);
         setBiens(updatedBiens);
     };
 
@@ -272,8 +289,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const newAchat: Achat = {
             id: `achat-${Date.now()}`,
-            clientId,
-            bienId,
+            clientId, bienId,
             date: new Date().toISOString().split('T')[0],
             montant: bien.prix,
         };
@@ -283,9 +299,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const updatedBiens = biens.map((b) => (b.id === bienId ? { ...b, etat: 'Acheté' as const } : b));
         const targetBien = updatedBiens.find(b => b.id === bienId);
-        if (targetBien) {
-            await apiService.saveBien(targetBien);
-        }
+        if (targetBien) await apiService.saveBien(targetBien);
         setBiens(updatedBiens);
 
         return saved;
@@ -294,12 +308,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const acheterVisiteVirtuelle = async (clientId: string, bienId: string) => {
         const bien = biens.find((b) => b.id === bienId);
         const likes = bien?.likes || 0;
-        const tourPrice = Math.max(0, 5000 - 500 * likes);
+        const nombreAchats = achats.filter(a => a.clientId === clientId && !a.typeVisite && a.statusVisite !== 'Refusée').length;
+        const tourPrice = calculerPrixVisiteVirtuelle(likes, nombreAchats);
 
         const newAchat: Achat = {
             id: `achat-virt-${Date.now()}`,
-            clientId,
-            bienId,
+            clientId, bienId,
             date: new Date().toISOString().split('T')[0],
             montant: tourPrice,
             typeVisite: 'virtuelle',
@@ -313,8 +327,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const demanderVisitePhysique = async (clientId: string, bienId: string, date: string) => {
         const newAchat: Achat = {
             id: `visite-${Date.now()}`,
-            clientId,
-            bienId,
+            clientId, bienId,
             date: new Date().toISOString().split('T')[0],
             montant: 0,
             typeVisite: 'physique',
@@ -328,20 +341,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     const ajouterBien = async (payload: Omit<Bien, 'likes' | 'commentaires' | 'etat'>) => {
-        const newBien: Bien = {
-            ...payload,
-            etat: 'Disponible',
-            likes: 0,
-            commentaires: [],
-        };
+        const newBien: Bien = { ...payload, etat: 'Disponible', likes: 0, commentaires: [] };
         const saved = await apiService.saveBien(newBien);
         setBiens([saved, ...biens]);
     };
 
     const modifierBien = async (updatedBien: Bien) => {
         const original = biens.find(b => b.id === updatedBien.id);
-        if (!original || original.etat === 'Acheté') return; // bien vendu = non modifiable
-        // Forcer la conservation de l'état original (le propriétaire ne peut pas changer l'état)
+        if (!original || original.etat === 'Acheté') return;
         const bienToSave = { ...updatedBien, etat: original.etat };
         const saved = await apiService.saveBien(bienToSave);
         setBiens(biens.map((b) => (b.id === saved.id ? saved : b)));
@@ -356,11 +363,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const target = achats.find(ac => ac.id === achatId);
         if (!target) return;
 
-        const updatedAchat = {
-            ...target,
-            statusVisite: (approuve ? 'Confirmée' : 'Refusée') as any
-        };
-
+        const updatedAchat = { ...target, statusVisite: (approuve ? 'Confirmée' : 'Refusée') as any };
         const saved = await apiService.updateAchat(updatedAchat);
         setAchats(achats.map((ac) => (ac.id === achatId ? saved : ac)));
     };
@@ -368,7 +371,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const demanderDevenirProprietaire = (clientId: string) => {
         setPendingProprietorRequests((prev) => {
             if (prev.includes(clientId)) return prev;
-            return [...prev, clientId];
+            const up = [...prev, clientId];
+            localStorage.setItem('ksm_pending_props', JSON.stringify(up));
+            return up;
         });
     };
 
@@ -376,11 +381,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const client = clients.find((c) => c.id === clientId);
         if (!client) return;
 
-        if (proprietaires.some((p) => p.id === `prop-${clientId}`)) return;
+        if (proprietaires.some((p) => p.email === (client as any).email)) return;
 
         const newProp: Proprietaire = {
             id: `prop-${clientId}`,
             nom: client.nom,
+            email: (client as any).email,
+            mdp: (client as any).mdp,
             numero: client.numero,
             adresse: client.adresse,
             compteActif: true,
@@ -388,7 +395,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const saved = await apiService.saveProprietaire(newProp);
         setProprietaires([...proprietaires, saved]);
-        setPendingProprietorRequests((prev) => prev.filter((id) => id !== clientId));
+
+        setPendingProprietorRequests((prev) => {
+            const up = prev.filter((id) => id !== clientId);
+            localStorage.setItem('ksm_pending_props', JSON.stringify(up));
+            return up;
+        });
+    };
+
+    const rejeterProprietaire = async (clientId: string) => {
+        setPendingProprietorRequests((prev) => {
+            const up = prev.filter((id) => id !== clientId);
+            localStorage.setItem('ksm_pending_props', JSON.stringify(up));
+            // Add to refused array to show message
+            const ref = JSON.parse(localStorage.getItem('ksm_refused_props') || '[]');
+            if (!ref.includes(clientId)) {
+                localStorage.setItem('ksm_refused_props', JSON.stringify([...ref, clientId]));
+            }
+            return up;
+        });
     };
 
     const toggleCompteActif = async (type: 'client' | 'proprietaire', id: string) => {
@@ -416,6 +441,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
         <AppContext.Provider
             value={{
+                theme,
+                toggleTheme,
                 role,
                 setRole,
                 currentUser,
@@ -427,6 +454,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 clients,
                 achats,
                 compareIds,
+                pendingProprietorRequests,
                 toggleCompare,
                 clearCompare,
                 toggleLike,
@@ -440,6 +468,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 validerVisite,
                 demanderDevenirProprietaire,
                 approuverProprietaire,
+                rejeterProprietaire,
                 toggleCompteActif,
                 visitesEnAttenteCount,
             }}

@@ -570,7 +570,7 @@ export default function HomePage() {
             {compareIds.length >= 2 && (
               <div style={{ textAlign: 'center', marginTop: '20px' }}>
                 <Link
-                  href="/dashboard"
+                  href="/compare"
                   style={{
                     background: 'var(--accent-purple)',
                     color: 'var(--text-white)',

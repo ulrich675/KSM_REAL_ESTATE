@@ -3,19 +3,23 @@
 import React, { useState } from 'react';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useApp } from '../../context/AppContext';
-import { Bien } from '../../data/properties';
+import { Bien, ImagesPieces } from '../../data/properties';
+import { fileToBase64 } from '../../utils/fileUtils';
 import Link from 'next/link';
 import {
     Home, Plus, Edit2, Trash2, Check, X, Users, ShieldAlert,
-    Package, Eye, Video, MapPin, Calendar, User, ChevronDown, ChevronUp
+    Package, Eye, Video, MapPin, Calendar, User, ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
 
 const formatPrix = (p: number) => new Intl.NumberFormat('fr-FR').format(p) + ' FCFA';
 
 // ─────────────────────────────────────────────
-// CLIENT DASHBOARD
+// CLIENT DASHBOARD CONTENT (REUSABLE)
 // ─────────────────────────────────────────────
-function ClientDashboard() {
+interface ClientDashboardContentProps {
+    showDevenirProp?: boolean;
+}
+export function ClientDashboardContent({ showDevenirProp = false }: ClientDashboardContentProps) {
     const { currentUser, achats, biens } = useApp();
     const mesAchats = achats.filter(a => a.clientId === currentUser?.id && !a.typeVisite);
     const mesVisitesVirt = achats.filter(a => a.clientId === currentUser?.id && a.typeVisite === 'virtuelle');
@@ -39,7 +43,7 @@ function ClientDashboard() {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
                 {[
@@ -56,7 +60,7 @@ function ClientDashboard() {
             </div>
 
             {/* Historique achats */}
-            <Section title="🏠 Mes achats de biens">
+            <Section title="Mes achats de biens">
                 {mesAchats.length === 0 ? <Empty msg="Aucun achat pour l'instant." /> :
                     mesAchats.map(a => {
                         const b = getBien(a.bienId);
@@ -71,7 +75,7 @@ function ClientDashboard() {
             </Section>
 
             {/* Historique visites virtuelles */}
-            <Section title="🎬 Mes visites virtuelles">
+            <Section title="Mes visites virtuelles">
                 {mesVisitesVirt.length === 0 ? <Empty msg="Aucune visite virtuelle." /> :
                     mesVisitesVirt.map(a => {
                         const b = getBien(a.bienId);
@@ -86,7 +90,7 @@ function ClientDashboard() {
             </Section>
 
             {/* Historique visites physiques */}
-            <Section title="📅 Mes visites physiques">
+            <Section title="Mes visites physiques">
                 {mesVisitesPhys.length === 0 ? <Empty msg="Aucune visite physique demandée." /> :
                     mesVisitesPhys.map(a => {
                         const b = getBien(a.bienId);
@@ -99,8 +103,101 @@ function ClientDashboard() {
                         ) : null;
                     })}
             </Section>
+
+            {/* Devenir Propriétaire - Formulaire complet si requis */}
+            {showDevenirProp && currentUser?.role === 'client' && (
+                <Section title="Devenir Propriétaire">
+                    <DevenirPropForm />
+                </Section>
+            )}
         </div>
     );
+}
+
+// ─────────────────────────────────────────────
+// FORMULAIRE DE CANDIDATURE "DEVENIR PROPRIÉTAIRE"
+// ─────────────────────────────────────────────
+function DevenirPropForm() {
+    const { currentUser, pendingProprietorRequests, demanderDevenirProprietaire } = useApp();
+    const [form, setForm] = useState({ numero: '', adresse: '', motivation: '' });
+    const [submitted, setSubmitted] = useState(false);
+
+    if (!currentUser) return null;
+    const isPending = pendingProprietorRequests.includes(currentUser.id);
+
+    if (isPending) {
+        return (
+            <div className="glass-card" style={{ padding: '20px', background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', color: '#eab308' }}>
+                <p style={{ fontWeight: 700, marginBottom: '6px' }}>⏳ Demande en attente</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Votre candidature a été soumise. Un administrateur l'examinera dans les plus brefs délais.</p>
+            </div>
+        );
+    }
+
+    if (submitted) {
+        return (
+            <div className="glass-card" style={{ padding: '20px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
+                <p style={{ fontWeight: 700, marginBottom: '6px' }}>✅ Soumission réussie</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Votre demande a été envoyée avec succès à l'administration.</p>
+            </div>
+        );
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.numero || !form.adresse || !form.motivation.trim()) return;
+        demanderDevenirProprietaire(currentUser.id);
+        setSubmitted(true);
+    };
+
+    const inputStyle = {
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '8px',
+        padding: '10px 14px',
+        color: 'var(--text-white)',
+        fontSize: '14px',
+        width: '100%'
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Nom complet</label>
+                    <input type="text" value={currentUser.nom} disabled style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Adresse email</label>
+                    <input type="text" value={currentUser.email} disabled style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Téléphone / WhatsApp</label>
+                    <input type="text" required placeholder="Ex: +237 6XX XX XX XX" value={form.numero} onChange={e => setForm(f => ({ ...f, numero: e.target.value }))} style={inputStyle} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Adresse physique</label>
+                    <input type="text" required placeholder="Ex: Bastos, Yaoundé" value={form.adresse} onChange={e => setForm(f => ({ ...f, adresse: e.target.value }))} style={inputStyle} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-gray)' }}>Motivation / Descriptions des biens</label>
+                <textarea rows={3} required placeholder="Décrivez les biens immobiliers que vous comptez proposer sur la plateforme ou vos motivations..." value={form.motivation} onChange={e => setForm(f => ({ ...f, motivation: e.target.value }))} style={{ ...inputStyle, resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="submit" style={{ padding: '10px 24px', background: 'var(--accent-orange)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 700, cursor: 'pointer' }}>
+                    Soumettre la demande
+                </button>
+            </div>
+        </form>
+    );
+}
+
+// ─────────────────────────────────────────────
+// CLIENT DASHBOARD WRAPPER
+// ─────────────────────────────────────────────
+function ClientDashboard() {
+    return <ClientDashboardContent showDevenirProp={true} />;
 }
 
 // ─────────────────────────────────────────────
@@ -117,19 +214,19 @@ function ProprietaireDashboard() {
 
     const [editingBien, setEditingBien] = useState<Bien | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [activeSection, setActiveSection] = useState<'biens' | 'visites' | 'vendus'>('biens');
+    const [activeSection, setActiveSection] = useState<'client' | 'biens' | 'visites' | 'vendus'>('client');
 
     // Form state
     const [form, setForm] = useState({
         nom: '', categorie: 'Villa' as Bien['categorie'], description: '', prix: 0,
         localisation: '', superficie: 0, chambres: 0, sallesDeBain: 0,
-        imageMain: '', latitude: 0, longitude: 0,
+        imageMain: '', latitude: 0, longitude: 0, imagesPieces: [] as ImagesPieces[]
     });
 
     const resetForm = () => setForm({
         nom: '', categorie: 'Villa', description: '', prix: 0,
         localisation: '', superficie: 0, chambres: 0, sallesDeBain: 0,
-        imageMain: '', latitude: 0, longitude: 0,
+        imageMain: '', latitude: 0, longitude: 0, imagesPieces: []
     });
 
     const startEdit = (b: Bien) => {
@@ -138,6 +235,7 @@ function ProprietaireDashboard() {
             nom: b.nom, categorie: b.categorie, description: b.description, prix: b.prix,
             localisation: b.localisation, superficie: b.superficie, chambres: b.chambres,
             sallesDeBain: b.sallesDeBain, imageMain: b.imageMain, latitude: b.latitude, longitude: b.longitude,
+            imagesPieces: b.imagesPieces || []
         });
         setShowAddForm(false);
     };
@@ -152,7 +250,6 @@ function ProprietaireDashboard() {
                 id: `bien-${Date.now()}`,
                 ...form,
                 proprietaireId: currentUser.id,
-                imagesPieces: [],
             });
             setShowAddForm(false);
         }
@@ -177,27 +274,35 @@ function ProprietaireDashboard() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
-                {[
-                    { label: 'Biens disponibles', value: biensDisponibles.length, icon: <Home size={20} /> },
-                    { label: 'Biens vendus', value: biensVendus.length, icon: <Package size={20} /> },
-                    { label: 'Visites en attente', value: mesVisitesDemandees.filter(v => v.statusVisite === 'En attente').length, icon: <Calendar size={20} /> },
-                ].map(s => (
-                    <div key={s.label} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ color: 'var(--accent-orange)' }}>{s.icon}</div>
-                        <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-white)' }}>{s.value}</p>
-                        <p style={{ color: 'var(--text-gray)', fontSize: '13px' }}>{s.label}</p>
-                    </div>
-                ))}
+            {/* Section Nav */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                {navBtn('client', '👤 Espace Client')}
+                {navBtn('biens', ` Mes biens (${biensDisponibles.length})`)}
+                {navBtn('visites', ` Visites (${mesVisitesDemandees.filter(v => v.statusVisite === 'En attente').length})`)}
+                {navBtn('vendus', ` Biens vendus (${biensVendus.length})`)}
             </div>
 
-            {/* Section Nav */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-                {navBtn('biens', '🏠 Mes biens')}
-                {navBtn('visites', `📅 Visites (${mesVisitesDemandees.filter(v => v.statusVisite === 'En attente').length})`)}
-                {navBtn('vendus', '🔴 Biens vendus')}
-            </div>
+            {/* ── CLIENT SIDE INHERITANCE */}
+            {activeSection === 'client' && (
+                <ClientDashboardContent showDevenirProp={false} />
+            )}
+
+            {/* Stats */}
+            {activeSection !== 'client' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
+                    {[
+                        { label: 'Biens disponibles', value: biensDisponibles.length, icon: <Home size={20} /> },
+                        { label: 'Biens vendus', value: biensVendus.length, icon: <Package size={20} /> },
+                        { label: 'Visites en attente', value: mesVisitesDemandees.filter(v => v.statusVisite === 'En attente').length, icon: <Calendar size={20} /> },
+                    ].map(s => (
+                        <div key={s.label} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ color: 'var(--accent-orange)' }}>{s.icon}</div>
+                            <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-white)' }}>{s.value}</p>
+                            <p style={{ color: 'var(--text-gray)', fontSize: '13px' }}>{s.label}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* ── MES BIENS DISPONIBLES */}
             {activeSection === 'biens' && (
@@ -289,7 +394,7 @@ function ProprietaireDashboard() {
 
             {/* ── BIENS VENDUS (read-only) */}
             {activeSection === 'vendus' && (
-                <Section title="🔴 Biens vendus (non modifiables)">
+                <Section title=" Biens vendus (non modifiables)">
                     {biensVendus.length === 0 ? <Empty msg="Aucun bien vendu." /> :
                         biensVendus.map(b => (
                             <div key={b.id} className="glass-card" style={{ display: 'flex', gap: '16px', padding: '16px', alignItems: 'center', opacity: 0.75 }}>
@@ -313,8 +418,9 @@ function ProprietaireDashboard() {
 // ADMIN DASHBOARD
 // ─────────────────────────────────────────────
 function AdminDashboard() {
-    const { clients, proprietaires, achats, biens, toggleCompteActif } = useApp();
-    const [activeSection, setActiveSection] = useState<'clients' | 'props' | 'histo'>('clients');
+    const { clients, proprietaires, achats, biens, toggleCompteActif, pendingProprietorRequests, approuverProprietaire, rejeterProprietaire } = useApp();
+    const [activeSection, setActiveSection] = useState<'clients' | 'props' | 'histo' | 'requests'>('clients');
+    const [activeMainTab, setActiveMainTab] = useState<'client' | 'proprietaire' | 'admin'>('admin');
 
     const navBtn = (key: typeof activeSection, label: string) => (
         <button
@@ -328,117 +434,192 @@ function AdminDashboard() {
         >{label}</button>
     );
 
+    const mainTabBtn = (key: typeof activeMainTab, label: string) => (
+        <button
+            onClick={() => setActiveMainTab(key)}
+            style={{
+                padding: '10px 20px', border: 'none', borderRadius: 'var(--radius-md)',
+                background: activeMainTab === key ? 'var(--accent-purple)' : 'rgba(255,255,255,0.04)',
+                color: activeMainTab === key ? '#fff' : 'var(--text-gray)',
+                fontWeight: 700, cursor: 'pointer', fontSize: '14px',
+            }}
+        >{label}</button>
+    );
+
     const getBien = (id: string) => biens.find(b => b.id === id);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
-                {[
-                    { label: 'Clients inscrits', value: clients.length, icon: <User size={20} /> },
-                    { label: 'Propriétaires', value: proprietaires.length, icon: <Users size={20} /> },
-                    { label: 'Transactions totales', value: achats.length, icon: <Package size={20} /> },
-                ].map(s => (
-                    <div key={s.label} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ color: '#ef4444' }}>{s.icon}</div>
-                        <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-white)' }}>{s.value}</p>
-                        <p style={{ color: 'var(--text-gray)', fontSize: '13px' }}>{s.label}</p>
+            {/* Main Tabs */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                {mainTabBtn('client', '👤 Espace Client')}
+                {mainTabBtn('proprietaire', ' Espace Propriétaire')}
+                {mainTabBtn('admin', ' Administration Platform')}
+            </div>
+
+            {/* Main Tab Render */}
+            {activeMainTab === 'client' && (
+                <ClientDashboardContent showDevenirProp={false} />
+            )}
+
+            {activeMainTab === 'proprietaire' && (
+                <ProprietaireDashboard />
+            )}
+
+            {activeMainTab === 'admin' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                    {/* Stats */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}>
+                        {[
+                            { label: 'Clients inscrits', value: clients.length, icon: <User size={20} /> },
+                            { label: 'Propriétaires', value: proprietaires.length, icon: <Users size={20} /> },
+                            { label: 'Transactions totales', value: achats.length, icon: <Package size={20} /> },
+                        ].map(s => (
+                            <div key={s.label} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ color: '#ef4444' }}>{s.icon}</div>
+                                <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-white)' }}>{s.value}</p>
+                                <p style={{ color: 'var(--text-gray)', fontSize: '13px' }}>{s.label}</p>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-                {navBtn('clients', `👤 Clients (${clients.length})`)}
-                {navBtn('props', `🏘️ Propriétaires (${proprietaires.length})`)}
-                {navBtn('histo', '📋 Historique global')}
-            </div>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        {navBtn('clients', `👤 Clients (${clients.length})`)}
+                        {navBtn('props', ` Propriétaires (${proprietaires.length})`)}
+                        {navBtn('requests', ` Demandes (${pendingProprietorRequests.length})`)}
+                        {navBtn('histo', ' Historique global')}
+                    </div>
 
-            {/* CLIENTS */}
-            {activeSection === 'clients' && (
-                <Section title="👤 Gestion des clients">
-                    {clients.length === 0 ? <Empty msg="Aucun client." /> :
-                        clients.map(c => (
-                            <div key={c.id} className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontWeight: 700 }}>
-                                    {c.nom[0]}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{c.nom}</p>
-                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{(c as any).email || 'Email non renseigné'} · {c.numero}</p>
-                                </div>
-                                <button
-                                    onClick={() => toggleCompteActif('client', c.id)}
-                                    style={{
-                                        padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
-                                        background: c.compteActif ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
-                                        color: c.compteActif ? '#ef4444' : '#22c55e',
-                                    }}
-                                >
-                                    {c.compteActif ? 'Désactiver' : 'Réactiver'}
-                                </button>
-                            </div>
-                        ))}
-                </Section>
-            )}
-
-            {/* PROPRIÉTAIRES */}
-            {activeSection === 'props' && (
-                <Section title="🏘️ Gestion des propriétaires">
-                    {proprietaires.length === 0 ? <Empty msg="Aucun propriétaire." /> :
-                        proprietaires.map(p => (
-                            <div key={p.id} className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(249,115,22,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-orange)', fontWeight: 700 }}>
-                                    {p.nom[0]}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{p.nom}</p>
-                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.email || 'Email non renseigné'} · {p.numero}</p>
-                                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                        {biens.filter(b => b.proprietaireId === p.id).length} bien(s)
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => toggleCompteActif('proprietaire', p.id)}
-                                    style={{
-                                        padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
-                                        background: p.compteActif ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
-                                        color: p.compteActif ? '#ef4444' : '#22c55e',
-                                    }}
-                                >
-                                    {p.compteActif ? 'Désactiver' : 'Réactiver'}
-                                </button>
-                            </div>
-                        ))}
-                </Section>
-            )}
-
-            {/* HISTORIQUE GLOBAL */}
-            {activeSection === 'histo' && (
-                <Section title="📋 Historique global des transactions">
-                    {achats.length === 0 ? <Empty msg="Aucune transaction." /> :
-                        achats.map(a => {
-                            const b = getBien(a.bienId);
-                            const client = clients.find(c => c.id === a.clientId);
-                            return (
-                                <div key={a.id} className="glass-card" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                                    {b && <img src={b.imageMain} alt={b.nom} style={{ width: 70, height: 50, objectFit: 'cover', borderRadius: 6 }} />}
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{b?.nom || a.bienId}</p>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
-                                            Client : {client?.nom || a.clientId} · {a.date}
-                                        </p>
-                                        <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                            {a.typeVisite === 'physique' ? `Visite physique (${a.dateVisite})` :
-                                                a.typeVisite === 'virtuelle' ? 'Visite virtuelle' : 'Achat de bien'}
-                                        </p>
+                    {/* CLIENTS */}
+                    {activeSection === 'clients' && (
+                        <Section title="👤 Gestion des clients">
+                            {clients.length === 0 ? <Empty msg="Aucun client." /> :
+                                clients.map(c => (
+                                    <div key={c.id} className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontWeight: 700 }}>
+                                            {c.nom[0]}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{c.nom}</p>
+                                            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{(c as any).email || 'Email non renseigné'} · {c.numero}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => toggleCompteActif('client', c.id)}
+                                            style={{
+                                                padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+                                                background: c.compteActif ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                                                color: c.compteActif ? '#ef4444' : '#22c55e',
+                                            }}
+                                        >
+                                            {c.compteActif ? 'Désactiver' : 'Réactiver'}
+                                        </button>
                                     </div>
-                                    <span style={{ fontWeight: 700, color: 'var(--accent-orange)' }}>
-                                        {a.montant === 0 ? 'Gratuit' : formatPrix(a.montant)}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                </Section>
+                                ))}
+                        </Section>
+                    )}
+
+                    {/* PROPRIÉTAIRES */}
+                    {activeSection === 'props' && (
+                        <Section title=" Gestion des propriétaires">
+                            {proprietaires.length === 0 ? <Empty msg="Aucun propriétaire." /> :
+                                proprietaires.map(p => (
+                                    <div key={p.id} className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(249,115,22,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-orange)', fontWeight: 700 }}>
+                                            {p.nom[0]}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{p.nom}</p>
+                                            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.email || 'Email non renseigné'} · {p.numero}</p>
+                                            <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                {biens.filter(b => b.proprietaireId === p.id).length} bien(s)
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => toggleCompteActif('proprietaire', p.id)}
+                                            style={{
+                                                padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+                                                background: p.compteActif ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                                                color: p.compteActif ? '#ef4444' : '#22c55e',
+                                            }}
+                                        >
+                                            {p.compteActif ? 'Désactiver' : 'Réactiver'}
+                                        </button>
+                                    </div>
+                                ))}
+                        </Section>
+                    )}
+
+                    {/* HISTORIQUE GLOBAL */}
+                    {activeSection === 'histo' && (
+                        <Section title=" Historique global des transactions">
+                            {achats.length === 0 ? <Empty msg="Aucune transaction." /> :
+                                achats.map(a => {
+                                    const b = getBien(a.bienId);
+                                    const client = clients.find(c => c.id === a.clientId);
+                                    return (
+                                        <div key={a.id} className="glass-card" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                            {b && <img src={b.imageMain} alt={b.nom} style={{ width: 70, height: 50, objectFit: 'cover', borderRadius: 6 }} />}
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{b?.nom || a.bienId}</p>
+                                                <p style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
+                                                    Client : {client?.nom || a.clientId} · {a.date}
+                                                </p>
+                                                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                    {a.typeVisite === 'physique' ? `Visite physique (${a.dateVisite})` :
+                                                        a.typeVisite === 'virtuelle' ? 'Visite virtuelle' : 'Achat de bien'}
+                                                </p>
+                                            </div>
+                                            <span style={{ fontWeight: 700, color: 'var(--accent-orange)' }}>
+                                                {a.montant === 0 ? 'Gratuit' : formatPrix(a.montant)}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                        </Section>
+                    )}
+
+                    {/* DEMANDES PROPRIÉTAIRES */}
+                    {activeSection === 'requests' && (
+                        <Section title={` Demandes d'accès Propriétaire (${pendingProprietorRequests.length})`}>
+                            {pendingProprietorRequests.length === 0 ? <Empty msg="Aucune demande en attente." /> :
+                                pendingProprietorRequests.map(reqId => {
+                                    const c = clients.find(cl => cl.id === reqId);
+                                    if (!c) return null;
+                                    return (
+                                        <div key={c.id} className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(234,179,8,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#eab308', fontWeight: 700 }}>
+                                                {c.nom[0]}
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ color: 'var(--text-white)', fontWeight: 600 }}>{c.nom}</p>
+                                                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{(c as any).email} · Client depuis peu</p>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => approuverProprietaire(c.id)}
+                                                    style={{
+                                                        padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+                                                        background: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                                                    }}
+                                                >
+                                                    Approuver
+                                                </button>
+                                                <button
+                                                    onClick={() => rejeterProprietaire(c.id)}
+                                                    style={{
+                                                        padding: '6px 14px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+                                                        background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444',
+                                                    }}
+                                                >
+                                                    Refuser
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </Section>
+                    )}
+                </div>
             )}
         </div>
     );
@@ -484,7 +665,7 @@ interface BienFormProps {
     form: {
         nom: string; categorie: Bien['categorie']; description: string; prix: number;
         localisation: string; superficie: number; chambres: number; sallesDeBain: number;
-        imageMain: string; latitude: number; longitude: number;
+        imageMain: string; latitude: number; longitude: number; imagesPieces: ImagesPieces[];
     };
     setForm: React.Dispatch<React.SetStateAction<BienFormProps['form']>>;
     onSave: () => void;
@@ -528,9 +709,70 @@ function BienForm({ form, setForm, onSave, onCancel, isEdit }: BienFormProps) {
                 {inp('Superficie (m²)', 'superficie', 'number')}
                 {inp('Chambres', 'chambres', 'number')}
                 {inp('Salles de bain', 'sallesDeBain', 'number')}
-                {inp('URL Image principale', 'imageMain')}
                 {inp('Latitude', 'latitude', 'number')}
                 {inp('Longitude', 'longitude', 'number')}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Image principale</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="form-input"
+                        onChange={async (e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                const base64 = await fileToBase64(e.target.files[0]);
+                                setForm(f => ({ ...f, imageMain: base64 }));
+                            }
+                        }}
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '7px 14px', color: 'var(--text-white)' }}
+                    />
+                    {form.imageMain && <img src={form.imageMain} alt="main prev" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 8 }} />}
+                </div>
+            </div>
+
+            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', borderRadius: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <h5 style={{ color: 'var(--text-white)' }}>Images des pièces</h5>
+                    <button onClick={() => setForm(f => ({ ...f, imagesPieces: [...f.imagesPieces, { label: `Pièce ${f.imagesPieces.length + 1}`, url: '' }] }))} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--accent-purple)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                        <Plus size={14} /> Ajouter image
+                    </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {form.imagesPieces.map((ip, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', border: '1px solid rgba(255,255,255,0.05)', padding: '10px', borderRadius: 8 }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <input
+                                    type="text" value={ip.label} placeholder="Nom de la pièce"
+                                    onChange={(e) => {
+                                        const newIP = [...form.imagesPieces];
+                                        newIP[idx].label = e.target.value;
+                                        setForm(f => ({ ...f, imagesPieces: newIP }));
+                                    }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: 6, color: 'var(--text-white)', width: '100%', fontSize: '13px' }}
+                                />
+                                <input
+                                    type="file" accept="image/*"
+                                    onChange={async (e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            const base64 = await fileToBase64(e.target.files[0]);
+                                            const newIP = [...form.imagesPieces];
+                                            newIP[idx].url = base64;
+                                            setForm(f => ({ ...f, imagesPieces: newIP }));
+                                        }
+                                    }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', padding: '5px 12px', borderRadius: 6, color: 'var(--text-white)', fontSize: '13px' }}
+                                />
+                            </div>
+                            {ip.url && <img src={ip.url} alt="prev" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 6 }} />}
+                            <button onClick={() => {
+                                const newIP = form.imagesPieces.filter((_, i) => i !== idx);
+                                setForm(f => ({ ...f, imagesPieces: newIP }));
+                            }} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', padding: '8px', borderRadius: 6, cursor: 'pointer' }}>
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Description</label>
