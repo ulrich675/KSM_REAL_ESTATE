@@ -5,38 +5,48 @@ import com.ksm.realestate.domain.model.KernelSignUpCommand;
 import reactor.core.publisher.Mono;
 
 /**
- * Outbound port for performing authentication and identity management
- * operations
- * against the external kernel-core service.
+ * Outbound port for authentication and identity management via kernel-core
+ * auth-core.
+ * Endpoints: /api/auth/sign-up, /api/auth/login, /api/auth/login/mfa/confirm,
+ * /api/auth/refresh
  *
  * @author Antigravity
- * @date 2026-07-09
+ * @date 2026-07-10
  */
 public interface KernelCoreAuthPort {
 
     /**
-     * Registers a new user on the kernel-core auth manager.
+     * Registers a new user via POST /api/auth/sign-up (PublicSignUpRequest).
      *
-     * @param command the sign up parameters details
-     * @return the result holding tokens or mfa requirements
+     * @param command sign-up parameters (firstName, lastName, email required)
+     * @return the authentication result (tokens or MFA transition)
      */
     Mono<KernelAuthResult> signUp(KernelSignUpCommand command);
 
     /**
-     * Authenticates a user using principal (email/username) and password.
+     * Authenticates a user via POST /api/auth/login (LoginRequest: principal +
+     * password).
      *
-     * @param principal the user identifier (email, username)
-     * @param password  the plain text password
-     * @return the authentication result
+     * @param principal the user identifier (email or username)
+     * @param password  the plain-text password
+     * @return authentication result with tokens or nextStep="CONFIRM_MFA"
      */
     Mono<KernelAuthResult> login(String principal, String password);
 
     /**
-     * Confirms the Multi-Factor Authentication step for login when required.
+     * Confirms the MFA step via POST /api/auth/login/mfa/confirm (mfaToken + code).
      *
-     * @param mfaToken the MFA transaction token returned from initial login
+     * @param mfaToken the MFA transaction token from the initial login
      * @param code     the one-time verification code
-     * @return the authentication result containing tokens on success
+     * @return authentication result containing final access tokens
      */
     Mono<KernelAuthResult> confirmMfa(String mfaToken, String code);
+
+    /**
+     * Refreshes an expired access token via POST /api/auth/refresh (refreshToken).
+     *
+     * @param refreshToken the refresh token from a previous login
+     * @return new authentication result with refreshed tokens
+     */
+    Mono<KernelAuthResult> refreshToken(String refreshToken);
 }

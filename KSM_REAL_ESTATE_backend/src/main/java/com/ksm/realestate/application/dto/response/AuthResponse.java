@@ -18,7 +18,8 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
     private String token;
     private String tokenType;
-    private Long expiresInMs;
+    /** Expiry in seconds (from kernel-core LoginResponse.expiresInSeconds) */
+    private Long expiresInSeconds;
     private UserResponse user;
     private String nextStep;
     private String mfaToken;
