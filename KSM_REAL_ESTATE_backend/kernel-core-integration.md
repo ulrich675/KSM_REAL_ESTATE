@@ -108,10 +108,16 @@ KERNEL_CORE_ORGANIZATION_ID=<uuid-org-production>
 
 ## 7. Questions ouvertes — validation humaine requise
 
-| # | Question | Défaut appliqué |
-|---|----------|----------------|
-| Q1 | Option A (cache local userId Long) vs Option B (UUID kernel) pour les utilisateurs ? | **Option A** |
-| Q2 | Schéma JSON exact de POST /api/paiement (billing-core) ? | **Hypothèse** (clientId, montant, devise) |
-| Q3 | Endpoints REST de file-core pour l'upload ? | **BLOQUÉ** — non implémenté |
-| Q4 | billing-core ou cashier-core pour les paiements en production ? | **billing-core** |
-| Q5 | Module commentaires : attendre un comment-core kernel ou valider Option A locale ? | **Option A** (locale) |
+| # | Question | Statut final |
+|---|----------|-------------|
+| Q1 | Option A (cache local userId Long) vs Option B (UUID kernel) pour les utilisateurs ? | ✅ **CONFIRMÉ — Option A** (validé session 2026-07-09) |
+| Q2 | Schéma JSON exact de POST /api/paiement (billing-core) ? | ⏳ **EN ATTENTE DE DOC** — hypothèse (userId, propertyId, amount, currency) en place, TODO dans `KernelCorePaymentAdapter.java` L55 |
+| Q3 | Endpoints REST de file-core pour l'upload ? | ⛔ **EN ATTENTE DE DOC** — `KernelCoreFileAdapter` lève `UnsupportedOperationException` |
+| Q4 | billing-core ou cashier-core pour les paiements en production ? | ✅ **CONFIRMÉ — billing-core** (validé session 2026-07-09) |
+| Q5 | Module commentaires : attendre un comment-core kernel ou valider Option A locale ? | ✅ **CONFIRMÉ — Option A locale** (chaîne hexagonale complète : domain/port/service/adapter/controller/migration) |
+
+> **Q2 / Q3 — Prochaine étape :** fournir une spec OpenAPI, une collection Postman,
+> ou du code source du service concerné. Les points d'extension sont :
+> - `KernelCorePaymentAdapter.java` L55 — payload `POST /api/paiement`
+> - `KernelCoreFileAdapter.java` — méthode `uploadFile()` à implémenter entièrement
+
