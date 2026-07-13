@@ -60,23 +60,23 @@ KSM Real Estate est une application de gestion et d'achat de biens immobiliers p
 
 Les 4 services kernel-core sont entièrement intégrés côté backend et accessibles depuis le frontend :
 
-### 🔐 auth-core — Authentification
+###  auth-core — Authentification
 - **Backend** : `KernelCoreAuthAdapter` → `POST /api/auth/login`, `POST /api/auth/register`
 - **Frontend** : Page `/connexion` → appels `loginApi()` / `registerApi()` → JWT stocké (`ksm_token`)
 - **Fallback** : si kernel-core est hors ligne, le backend lève une exception → page login affiche le message d'erreur
 
-### 💳 billing-core — Facturation / Paiements
+###  billing-core — Facturation / Paiements
 - **Backend** : `PaymentService` → `KernelCorePaymentAdapter` → crée une facture kernel puis la poste (POSTED)
 - **Frontend** : boutons "Acheter ce bien" et "Visite virtuelle" → `AppContext.acheterBien()` / `acheterVisiteVirtuelle()` → `POST /api/payments`
 - **Fallback** : si le paiement échoue, l'utilisateur reçoit une alerte explicite ; aucune donnée corrompue n'est enregistrée
 
-### ⭐ ratings-core — Commentaires & Likes
+###  ratings-core — Commentaires & Likes
 - **Backend** : `CommentService` — stratégie dual-write : persistance locale (PostgreSQL) + sync asynchrone vers ratings-core
 - **Frontend** : fiche bien `/properties/[id]` → formulaire d'avis → `AppContext.addCommentaire()` → `POST /api/comments` ; bouton ♥ → `AppContext.toggleLike()` → `POST /api/comments/property/{id}/like`
 - **Chargement initial** : `AppContext` charge au montage les commentaires et le total de likes de chaque bien via `Promise.all()`
 - **Fallback** : si kernel-core est hors ligne, le commentaire/like est sauvegardé localement
 
-### 📁 tiers-documents — Gestion des fichiers
+###  tiers-documents — Gestion des fichiers
 - **Backend** : `FileController` expose `POST /api/files/upload` (multipart), `GET /api/files/tiers/{tierId}`, `DELETE /api/files/tiers/{tierId}/{docId}` → délègue à `KernelCoreFileAdapter`
 - **Frontend** : dashboard propriétaire → formulaire de création/modification de bien → `uploadOrBase64()` → tente `apiService.uploadFile()` sur le backend ; l'URL retournée est utilisée si disponible
 - **Fallback** : si le backend est hors ligne, l'image est convertie en base64 et stockée localement
