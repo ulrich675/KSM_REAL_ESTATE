@@ -73,6 +73,9 @@ public class PropertyEntity {
     @Column("salles_de_bain")
     private Integer sallesDeBain;
 
+    @Column("status")
+    private String status;
+
     @Column("created_at")
     private Instant createdAt;
 
@@ -239,5 +242,13 @@ public class PropertyEntity {
 
     public void setSallesDeBain(Integer sallesDeBain) {
         this.sallesDeBain = sallesDeBain;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

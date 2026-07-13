@@ -1,6 +1,7 @@
 package com.ksm.realestate.infrastructure.adapter.out.persistence;
 
 import com.ksm.realestate.application.port.out.UserRepositoryPort;
+import com.ksm.realestate.domain.model.Role;
 import com.ksm.realestate.domain.model.User;
 import com.ksm.realestate.infrastructure.mapper.UserMapper;
 import com.ksm.realestate.infrastructure.repository.UserRepository;
@@ -48,6 +49,12 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public Flux<User> findAll() {
         return repository.findAll()
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Flux<User> findByRole(Role role) {
+        return repository.findByRole(role.name())
                 .map(mapper::toDomain);
     }
 

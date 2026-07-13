@@ -35,6 +35,9 @@ public interface PropertyMapper {
     @Mapping(target = "stateName", source = "address.state")
     @Mapping(target = "zipCode", source = "address.postalCode")
     @Mapping(target = "country", source = "address.country")
+    @Mapping(target = "latitude", source = "address.latitude")
+    @Mapping(target = "longitude", source = "address.longitude")
+    @Mapping(target = "status", source = "status")
     PropertyResponse toResponse(Property property);
 
     @Mapping(target = "priceAmount", source = "price.amount")

@@ -204,7 +204,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             console.warn('[KSM] Backend login failed, trying local mock:', err);
 
             // Fallback: try local mock data (dev/offline mode)
-            const foundProp = proprietaires.find(p => p.email === email && (p as any).mdp === mdp);
+            const foundProp = proprietaires.find(p => p.email === email && (p as any).mdp === mdp)
+                || mockProprietaires.find(p => p.email === email && p.mdp === mdp);
             if (foundProp) {
                 if (foundProp.compteActif === false)
                     return { success: false, message: "Votre compte a été désactivé par l'administrateur." };
@@ -213,7 +214,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem('ksm_session', JSON.stringify(session));
                 return { success: true };
             }
-            const foundClient = clients.find(c => (c as any).email === email && (c as any).mdp === mdp);
+            const foundClient = clients.find(c => (c as any).email === email && (c as any).mdp === mdp)
+                || mockClients.find(c => c.email === email && c.mdp === mdp);
             if (foundClient) {
                 if (foundClient.compteActif === false)
                     return { success: false, message: "Votre compte a été désactivé par l'administrateur." };

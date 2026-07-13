@@ -39,6 +39,10 @@ public class PropertyResponse {
     private Integer chambres;
     private Integer sallesDeBain;
 
+    private Double latitude;
+    private Double longitude;
+    private String status;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

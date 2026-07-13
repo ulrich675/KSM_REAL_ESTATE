@@ -10,6 +10,7 @@ import com.ksm.realestate.domain.model.Role;
 import com.ksm.realestate.domain.model.User;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.time.Instant;
 
@@ -94,6 +95,38 @@ public class UserService implements RegisterUserUseCase, GetUserByEmailUseCase {
         return getUserById(userId)
                 .flatMap(user -> {
                     user.setRole(approved ? Role.PROPRIETOR : Role.CLIENT);
+                    user.setUpdatedAt(Instant.now());
+                    return userRepositoryPort.save(user);
+                });
+    }
+
+    /**
+     * Returns all users with the given role.
+     *
+     * @author ulrich675
+     */
+    public Flux<User> getUsersByRole(Role role) {
+        return userRepositoryPort.findByRole(role);
+    }
+
+    /**
+     * Returns all users.
+     *
+     * @author ulrich675
+     */
+    public Flux<User> getAllUsers() {
+        return userRepositoryPort.findAll();
+    }
+
+    /**
+     * Toggles the active status of a user account.
+     *
+     * @author ulrich675
+     */
+    public Mono<User> toggleUserActive(Long userId) {
+        return getUserById(userId)
+                .flatMap(user -> {
+                    user.setActive(user.getActive() == null || !user.getActive());
                     user.setUpdatedAt(Instant.now());
                     return userRepositoryPort.save(user);
                 });

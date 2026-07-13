@@ -3,7 +3,7 @@
 # Date: 2026-07-13
 
 # ==================== Build Stage ====================
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies first (leverage layer cache)
@@ -21,7 +21,7 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # ==================== Run Stage ====================
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

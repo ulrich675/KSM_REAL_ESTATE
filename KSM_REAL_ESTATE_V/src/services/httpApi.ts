@@ -85,6 +85,7 @@ interface BackendUser {
     email: string;
     phoneNumber?: string;
     role?: string;   // CLIENT | PROPRIETOR | ADMIN
+    active?: boolean;
 }
 
 interface BackendVisitRequest {
@@ -150,7 +151,7 @@ function mapUser(u: BackendUser): Client {
         numero: u.phoneNumber ?? '',
         adresse: '',
         likedBienIds: [],
-        compteActif: true,
+        compteActif: u.active !== false, // default true unless explicitly false
         email: u.email,
     };
 }
@@ -178,6 +179,13 @@ function mapVisitToAchat(v: BackendVisitRequest): Achat {
     };
 }
 
+// Helper fallback direct sur LocalStorage pour éviter les dépendances circulaires
+function getLocalFallback<T>(key: string, defaultValue: T): T {
+    if (typeof window === 'undefined') return defaultValue;
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : defaultValue;
+}
+
 // ─── HTTP Adapter ─────────────────────────────────────────────────────────────
 
 export class HttpApiAdapter implements KsmApiService {
@@ -186,10 +194,14 @@ export class HttpApiAdapter implements KsmApiService {
     async getBiens(): Promise<Bien[]> {
         try {
             const list = await apiFetch<BackendProperty[]>('/properties');
-            return Array.isArray(list) ? list.map(mapProperty) : [];
+            const mapped = Array.isArray(list) ? list.map(mapProperty) : [];
+            if (mapped.length === 0) {
+                return getLocalFallback<Bien[]>('ksm_biens', []);
+            }
+            return mapped;
         } catch (e) {
             console.warn('[KSM] getBiens failed, falling back to local:', e);
-            return [];
+            return getLocalFallback<Bien[]>('ksm_biens', []);
         }
     }
 
@@ -233,23 +245,36 @@ export class HttpApiAdapter implements KsmApiService {
     async getProprietaires(): Promise<Proprietaire[]> {
         try {
             const list = await apiFetch<BackendUser[]>('/users?role=PROPRIETOR');
-            return Array.isArray(list)
+            const mapped = Array.isArray(list)
                 ? list.map((u) => ({
                     id: String(u.userId),
                     nom: `${u.firstName} ${u.lastName}`.trim(),
                     numero: u.phoneNumber ?? '',
                     adresse: '',
-                    compteActif: true,
+                    compteActif: u.active !== false,
                     email: u.email,
                 }))
                 : [];
-        } catch {
-            return [];
+            if (mapped.length === 0) {
+                return getLocalFallback<Proprietaire[]>('ksm_proprietaires', []);
+            }
+            return mapped;
+        } catch (e) {
+            console.warn('[KSM] getProprietaires failed, falling back to local:', e);
+            return getLocalFallback<Proprietaire[]>('ksm_proprietaires', []);
         }
     }
 
     async saveProprietaire(prop: Proprietaire): Promise<Proprietaire> {
-        // Proprietor creation goes through user registration on the backend
+        // Toggle active status if the ID is a real backend ID
+        if (prop.id && !prop.id.startsWith('prop-')) {
+            try {
+                const updated = await apiFetch<BackendUser>(`/users/${prop.id}/toggle-active`, { method: 'PATCH' });
+                return { ...prop, compteActif: updated.active !== false };
+            } catch (e) {
+                console.warn('[KSM] saveProprietaire toggle-active failed:', e);
+            }
+        }
         return prop;
     }
 
@@ -258,13 +283,27 @@ export class HttpApiAdapter implements KsmApiService {
     async getClients(): Promise<Client[]> {
         try {
             const list = await apiFetch<BackendUser[]>('/users?role=CLIENT');
-            return Array.isArray(list) ? list.map(mapUser) : [];
-        } catch {
-            return [];
+            const mapped = Array.isArray(list) ? list.map(mapUser) : [];
+            if (mapped.length === 0) {
+                return getLocalFallback<Client[]>('ksm_clients', []);
+            }
+            return mapped;
+        } catch (e) {
+            console.warn('[KSM] getClients failed, falling back to local:', e);
+            return getLocalFallback<Client[]>('ksm_clients', []);
         }
     }
 
     async saveClient(client: Client): Promise<Client> {
+        // Toggle active status if the ID is a real backend ID
+        if (client.id && !client.id.startsWith('client-')) {
+            try {
+                const updated = await apiFetch<BackendUser>(`/users/${client.id}/toggle-active`, { method: 'PATCH' });
+                return { ...client, compteActif: updated.active !== false };
+            } catch (e) {
+                console.warn('[KSM] saveClient toggle-active failed:', e);
+            }
+        }
         return client;
     }
 
@@ -273,9 +312,14 @@ export class HttpApiAdapter implements KsmApiService {
     async getAchats(): Promise<Achat[]> {
         try {
             const list = await apiFetch<BackendVisitRequest[]>('/visits');
-            return Array.isArray(list) ? list.map(mapVisitToAchat) : [];
-        } catch {
-            return [];
+            const mapped = Array.isArray(list) ? list.map(mapVisitToAchat) : [];
+            if (mapped.length === 0) {
+                return getLocalFallback<Achat[]>('ksm_achats', []);
+            }
+            return mapped;
+        } catch (e) {
+            console.warn('[KSM] getAchats failed, falling back to local:', e);
+            return getLocalFallback<Achat[]>('ksm_achats', []);
         }
     }
 

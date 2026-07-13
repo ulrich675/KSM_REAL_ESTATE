@@ -23,4 +23,7 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private Role role;
+    private String phoneNumber;
+    private String businessType;
+    private Boolean active;
 }

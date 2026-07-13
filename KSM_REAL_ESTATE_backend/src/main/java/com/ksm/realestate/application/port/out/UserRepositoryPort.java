@@ -1,5 +1,6 @@
 package com.ksm.realestate.application.port.out;
 
+import com.ksm.realestate.domain.model.Role;
 import com.ksm.realestate.domain.model.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,6 +20,8 @@ public interface UserRepositoryPort {
     Mono<User> findByEmail(String email);
 
     Flux<User> findAll();
+
+    Flux<User> findByRole(Role role);
 
     Mono<Void> deleteById(Long userId);
 }

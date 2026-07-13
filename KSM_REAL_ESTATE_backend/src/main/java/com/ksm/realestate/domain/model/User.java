@@ -47,6 +47,8 @@ public class User {
 
     private String businessType;
 
+    private Boolean active;
+
     private Instant createdAt;
 
     private Instant updatedAt;

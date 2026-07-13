@@ -52,6 +52,9 @@ public class Property {
     private Integer chambres;
     private Integer sallesDeBain;
 
+    /** AVAILABLE | SOLD */
+    private String status;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

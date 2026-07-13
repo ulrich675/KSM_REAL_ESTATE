@@ -1,0 +1,29 @@
+databaseChangeLog:
+  # =====================================================================
+  # Add 'active' column to users table (default: true)
+  # Author: ulrich675
+  # Date: 2026-07-13
+  # =====================================================================
+  - changeSet:
+      id: 5
+      author: ulrich675
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+        - addColumn:
+            tableName: properties
+            columns:
+              - column:
+                  name: status
+                  type: varchar(20)
+                  defaultValue: 'AVAILABLE'
+                  constraints:
+                    nullable: false

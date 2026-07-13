@@ -48,6 +48,9 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/properties", "/api/properties/**")
+                        .permitAll()
+                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/comments/property/**").permitAll()
                         .pathMatchers(PUBLIC_PATHS).permitAll()
                         .anyExchange().authenticated())
                 .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

@@ -50,6 +50,9 @@ public class UserEntity {
     @Column("business_type")
     private String businessType;
 
+    @Column("active")
+    private Boolean active;
+
     public Long getUserId() {
         return userId;
     }
@@ -136,5 +139,13 @@ public class UserEntity {
 
     public void setBusinessType(String businessType) {
         this.businessType = businessType;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }
