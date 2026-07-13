@@ -20,7 +20,7 @@ import java.time.Instant;
  * PropertyService provides the business logic for property management,
  * implementing the inbound use-case ports.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Service

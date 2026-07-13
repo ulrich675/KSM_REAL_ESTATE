@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
  * <li>DELETE /api/v1/tiers/{tierId}/documents/{documentId} — delete</li>
  * </ul>
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 public interface KernelCoreFilePort {

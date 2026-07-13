@@ -2,7 +2,7 @@
  * Spring Security WebFlux configuration.
  * Configures the security filter chain with JWT and permits public endpoints.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 package com.ksm.realestate.infrastructure.config;

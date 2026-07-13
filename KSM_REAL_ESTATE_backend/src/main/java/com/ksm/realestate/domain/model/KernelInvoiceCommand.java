@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
  * <b>Stable port contract</b> — internal logic (adapter mapping) lives in
  * {@code KernelCorePaymentAdapter}, not here.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Data

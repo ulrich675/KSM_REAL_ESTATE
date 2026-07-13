@@ -10,7 +10,7 @@ import java.time.Instant;
 /**
  * Response payload representing payment status and receipt reference.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

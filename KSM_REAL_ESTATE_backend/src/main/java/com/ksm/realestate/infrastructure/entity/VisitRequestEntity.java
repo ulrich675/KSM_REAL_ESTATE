@@ -10,7 +10,7 @@ import java.time.Instant;
  *
  * Maps to a table "visit_requests".
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Table("visit_requests")

@@ -17,7 +17,7 @@ import java.nio.file.Path;
  * Adapter implementing ReceiptGeneratorPort using OpenHTMLToPDF.
  * Generates a receipt PDF from an HTML template and stores it on local disk.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

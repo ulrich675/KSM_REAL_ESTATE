@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
 /**
  * MapStruct mapper for Property domain model, DTOs, and persistence entity.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Mapper(componentModel = "spring", config = KsmMapperConfig.class)

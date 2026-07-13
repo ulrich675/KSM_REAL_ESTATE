@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
  * SearchService processes property search use‑cases using external indexing
  * adapters (like Elasticsearch).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Service

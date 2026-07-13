@@ -6,7 +6,7 @@
  * In development the default value is {@code http://localhost:3000}.
  * In production this variable MUST be set to the real frontend origin(s).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 package com.ksm.realestate.infrastructure.config;

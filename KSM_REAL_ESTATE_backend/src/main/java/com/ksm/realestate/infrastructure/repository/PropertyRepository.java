@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
  *
  * Spring Data R2DBC will provide the implementation at runtime.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface PropertyRepository extends ReactiveCrudRepository<PropertyEntity, Long> {

@@ -11,7 +11,7 @@ import java.time.Instant;
 /**
  * Payment domain model representing a completed transaction.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

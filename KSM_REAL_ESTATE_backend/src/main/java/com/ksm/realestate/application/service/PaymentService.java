@@ -22,7 +22,7 @@ import java.time.Instant;
  * Endpoint used: POST /api/accounting/invoices → POST
  * /api/accounting/invoices/{id}/post
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Service

@@ -3,7 +3,7 @@ package com.ksm.realestate.domain.exception;
 /**
  * Exception thrown when a user is not found.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public class UserNotFoundException extends BusinessException {

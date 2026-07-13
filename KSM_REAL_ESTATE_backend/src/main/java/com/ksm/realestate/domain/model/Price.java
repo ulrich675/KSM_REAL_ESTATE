@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * Price value object representing a monetary amount with currency.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public class Price {

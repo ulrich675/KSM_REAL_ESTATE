@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * headers
  * for communication with the kernel-core endpoints.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Configuration

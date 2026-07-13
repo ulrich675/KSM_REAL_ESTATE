@@ -17,7 +17,7 @@ import java.time.Instant;
  * REST controller for file upload operations, delegating to kernel-core.
  * Exposes endpoints for the React frontend to upload, list, and delete files.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j
@@ -26,56 +26,56 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final KernelCoreFilePort filePort;
+        private final KernelCoreFilePort filePort;
 
-    /**
-     * Upload a file and associate it with a tierId (property or user UUID).
-     */
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ApiResponse<KernelFileResult>> uploadFile(
-            @RequestPart("file") FilePart file,
-            @RequestParam("tierId") String tierId,
-            @RequestParam("documentType") String documentType,
-            @RequestParam(value = "label", required = false) String label) {
+        /**
+         * Upload a file and associate it with a tierId (property or user UUID).
+         */
+        @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @ResponseStatus(HttpStatus.CREATED)
+        public Mono<ApiResponse<KernelFileResult>> uploadFile(
+                        @RequestPart("file") FilePart file,
+                        @RequestParam("tierId") String tierId,
+                        @RequestParam("documentType") String documentType,
+                        @RequestParam(value = "label", required = false) String label) {
 
-        log.info("Request to upload file name: '{}' for tierId: '{}', type: '{}', label: '{}'",
-                file.filename(), tierId, documentType, label);
+                log.info("Request to upload file name: '{}' for tierId: '{}', type: '{}', label: '{}'",
+                                file.filename(), tierId, documentType, label);
 
-        return filePort.uploadFile(file, tierId, documentType, label)
-                .map(result -> ApiResponse.<KernelFileResult>builder()
-                        .status("SUCCESS")
-                        .message("File uploaded successfully")
-                        .data(result)
-                        .timestamp(Instant.now())
-                        .errors(null)
-                        .build());
-    }
+                return filePort.uploadFile(file, tierId, documentType, label)
+                                .map(result -> ApiResponse.<KernelFileResult>builder()
+                                                .status("SUCCESS")
+                                                .message("File uploaded successfully")
+                                                .data(result)
+                                                .timestamp(Instant.now())
+                                                .errors(null)
+                                                .build());
+        }
 
-    /**
-     * List all files associated with a tierId.
-     */
-    @GetMapping("/tiers/{tierId}")
-    public Flux<KernelFileResult> getFiles(@PathVariable("tierId") String tierId) {
-        log.info("Request to list files for tierId: '{}'", tierId);
-        return filePort.getFiles(tierId);
-    }
+        /**
+         * List all files associated with a tierId.
+         */
+        @GetMapping("/tiers/{tierId}")
+        public Flux<KernelFileResult> getFiles(@PathVariable("tierId") String tierId) {
+                log.info("Request to list files for tierId: '{}'", tierId);
+                return filePort.getFiles(tierId);
+        }
 
-    /**
-     * Delete a specific file.
-     */
-    @DeleteMapping("/tiers/{tierId}/{documentId}")
-    public Mono<ApiResponse<Void>> deleteFile(
-            @PathVariable("tierId") String tierId,
-            @PathVariable("documentId") String documentId) {
-        log.info("Request to delete file id: '{}' for tierId: '{}'", documentId, tierId);
+        /**
+         * Delete a specific file.
+         */
+        @DeleteMapping("/tiers/{tierId}/{documentId}")
+        public Mono<ApiResponse<Void>> deleteFile(
+                        @PathVariable("tierId") String tierId,
+                        @PathVariable("documentId") String documentId) {
+                log.info("Request to delete file id: '{}' for tierId: '{}'", documentId, tierId);
 
-        return filePort.deleteFile(tierId, documentId)
-                .then(Mono.just(ApiResponse.<Void>builder()
-                        .status("SUCCESS")
-                        .message("File deleted successfully")
-                        .timestamp(Instant.now())
-                        .errors(null)
-                        .build()));
-    }
+                return filePort.deleteFile(tierId, documentId)
+                                .then(Mono.just(ApiResponse.<Void>builder()
+                                                .status("SUCCESS")
+                                                .message("File deleted successfully")
+                                                .timestamp(Instant.now())
+                                                .errors(null)
+                                                .build()));
+        }
 }

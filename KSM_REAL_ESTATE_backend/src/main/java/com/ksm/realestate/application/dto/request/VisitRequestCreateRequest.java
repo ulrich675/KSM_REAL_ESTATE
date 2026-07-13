@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 /**
  * Request payload for creating a visit request.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

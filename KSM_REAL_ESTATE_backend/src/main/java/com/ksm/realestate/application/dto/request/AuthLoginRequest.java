@@ -1,7 +1,7 @@
 /**
  * DTO for user login request.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 package com.ksm.realestate.application.dto.request;

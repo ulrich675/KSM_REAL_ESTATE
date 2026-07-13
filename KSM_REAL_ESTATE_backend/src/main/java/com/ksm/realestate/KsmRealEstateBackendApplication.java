@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * Main entry point for the KSM Real Estate backend application.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @SpringBootApplication

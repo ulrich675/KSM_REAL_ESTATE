@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
  * Unit tests for PaymentService using the updated KernelCorePaymentPort
  * (createInvoice → KernelInvoiceResult).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @ExtendWith(MockitoExtension.class)

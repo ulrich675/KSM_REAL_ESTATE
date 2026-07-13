@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * Result returned from kernel-core ratings after posting or fetching a comment.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Data

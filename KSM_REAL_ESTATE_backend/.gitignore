@@ -31,9 +31,9 @@ application-secrets.yml
 # Fichiers générés (reçus PDF stockés localement)
 receipts/
 
-# Fichiers de session Antigravity (contexte de travail, pas du code source)
-.antigravity/
-*.antigravity-session
+# Fichiers de session ulrich675 (contexte de travail, pas du code source)
+.ulrich675/
+*.ulrich675-session
 
 # Divers
 *.bak

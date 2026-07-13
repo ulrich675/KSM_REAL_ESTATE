@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  * Adapter bridging {@link PropertyRepositoryPort} with R2DBC
  * {@link PropertyRepository}.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

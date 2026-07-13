@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * Result returned after creating an invoice in kernel-core billing.
  * Maps to {@code InvoiceResponse} in the kernel-core OpenAPI spec.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Data

@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
  * Adapter implementing EventPublisherPort using KafkaTemplate wrapped
  * reactively.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

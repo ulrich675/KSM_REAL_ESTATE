@@ -33,7 +33,7 @@ import java.util.Map;
  * CommentDTO required fields: content, commentByUser (UUID), entityId,
  * entityType.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j

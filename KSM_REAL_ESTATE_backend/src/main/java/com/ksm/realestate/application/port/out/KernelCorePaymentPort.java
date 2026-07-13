@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
  * invoice</li>
  * </ul>
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 public interface KernelCorePaymentPort {

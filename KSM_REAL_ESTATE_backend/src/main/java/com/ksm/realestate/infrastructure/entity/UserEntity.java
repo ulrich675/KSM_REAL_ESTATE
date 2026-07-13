@@ -10,7 +10,7 @@ import java.time.Instant;
  *
  * Maps to a table "users".
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Table("users")

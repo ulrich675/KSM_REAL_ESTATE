@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
  * <li>GET /api/v1/ratings/totalLikes?entityId=... — total likes</li>
  * </ul>
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 public interface KernelCoreCommentPort {

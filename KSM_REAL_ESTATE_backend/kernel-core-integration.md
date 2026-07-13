@@ -1,6 +1,6 @@
 # Kernel-Core Integration — KSM Real Estate Backend
 
-> **Date :** 2026-07-09 | **Auteur :** Antigravity  
+> **Date :** 2026-07-09 | **Auteur :** ulrich675  
 > **Version kernel-core :** RT-Comops / Yowyob (multi-tenant hexagonal)
 
 ---

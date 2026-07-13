@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
  * <li>entityType — required (e.g. "PROPERTY")</li>
  * </ul>
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Data

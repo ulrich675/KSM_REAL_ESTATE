@@ -3,7 +3,7 @@ package com.ksm.realestate.domain.exception;
 /**
  * Exception thrown when a user attempts an unauthorized action.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public class UnauthorizedActionException extends BusinessException {

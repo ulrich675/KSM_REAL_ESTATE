@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
  * Endpoints: /api/auth/sign-up, /api/auth/login, /api/auth/login/mfa/confirm,
  * /api/auth/refresh
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 public interface KernelCoreAuthPort {

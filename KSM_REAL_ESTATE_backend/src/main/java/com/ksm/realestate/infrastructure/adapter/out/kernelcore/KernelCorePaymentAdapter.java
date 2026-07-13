@@ -32,7 +32,7 @@ import java.util.Map;
  * Required fields (CreateInvoiceRequest): organizationId, customerThirdPartyId,
  * currency.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j

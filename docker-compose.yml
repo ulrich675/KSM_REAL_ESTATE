@@ -1,0 +1,132 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ksm-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ksm_real_estate
+    ports:
+      - "5432:5432"
+    volumes:
+      - ksm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ksm_real_estate"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ksm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ksm-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ksm-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: ksm-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - ksm-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: ksm-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ksm-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: ksm-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - ksm-network
+
+  backend:
+    build:
+      context: ./KSM_REAL_ESTATE_backend
+      dockerfile: Dockerfile
+    container_name: ksm-backend
+    env_file:
+      - ./KSM_REAL_ESTATE_backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - ksm-network
+
+  frontend:
+    build:
+      context: ./KSM_REAL_ESTATE_V
+      dockerfile: Dockerfile
+    container_name: ksm-frontend
+    env_file:
+      - ./KSM_REAL_ESTATE_V/.env
+    environment:
+      BACKEND_URL: http://backend:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - ksm-network
+
+networks:
+  ksm-network:
+    driver: bridge
+
+volumes:
+  ksm_postgres_data:

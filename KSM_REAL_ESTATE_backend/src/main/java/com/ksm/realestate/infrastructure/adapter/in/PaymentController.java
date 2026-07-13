@@ -13,7 +13,7 @@ import java.time.Instant;
 /**
  * REST controller for handling payment processing.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @RestController

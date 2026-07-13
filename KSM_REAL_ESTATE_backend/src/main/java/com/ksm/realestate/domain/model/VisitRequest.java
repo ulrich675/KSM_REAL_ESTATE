@@ -10,7 +10,7 @@ import java.time.Instant;
 /**
  * VisitRequest domain model representing request to visit a property.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

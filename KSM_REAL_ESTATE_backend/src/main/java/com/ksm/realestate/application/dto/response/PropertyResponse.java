@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for property response data.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data
@@ -32,6 +32,13 @@ public class PropertyResponse {
     private String locationWkt;
     private String category;
     private Long ownerId;
+
+    private String imageMain;
+    private String imagesPiecesJson;
+    private Integer superficie;
+    private Integer chambres;
+    private Integer sallesDeBain;
+
     private Instant createdAt;
     private Instant updatedAt;
 }

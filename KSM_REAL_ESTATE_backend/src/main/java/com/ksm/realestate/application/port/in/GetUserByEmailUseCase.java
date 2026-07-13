@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 /**
  * Use-case for retrieving a user profile by email.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 public interface GetUserByEmailUseCase {
@@ -16,7 +16,8 @@ public interface GetUserByEmailUseCase {
      *
      * @param email the user email
      * @return the matching user
-     * @throws com.ksm.realestate.domain.exception.UserNotFoundException if no user matches
+     * @throws com.ksm.realestate.domain.exception.UserNotFoundException if no user
+     *                                                                   matches
      */
     Mono<User> getUserByEmail(String email);
 }

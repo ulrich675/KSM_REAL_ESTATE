@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
  * Mapper for converting between VisitRequest DTOs, domain models, and
  * persistence entities.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Mapper(componentModel = "spring", config = KsmMapperConfig.class)

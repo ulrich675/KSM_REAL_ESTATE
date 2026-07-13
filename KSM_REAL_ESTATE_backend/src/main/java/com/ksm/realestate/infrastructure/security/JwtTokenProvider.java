@@ -2,7 +2,7 @@
  * Utility class for generating and validating JWT tokens.
  * Uses HMAC SHA256 signing algorithm.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 package com.ksm.realestate.infrastructure.security;

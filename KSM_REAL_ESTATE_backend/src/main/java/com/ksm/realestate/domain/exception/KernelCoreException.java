@@ -4,7 +4,7 @@ package com.ksm.realestate.domain.exception;
  * Exception thrown when the external kernel-core service returns an error
  * or communication with it fails.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 public class KernelCoreException extends BusinessException {

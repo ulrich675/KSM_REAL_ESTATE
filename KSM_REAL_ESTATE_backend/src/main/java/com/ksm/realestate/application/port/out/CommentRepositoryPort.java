@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
  * Comments are managed entirely locally (Option A — no kernel-core equivalent
  * found).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 public interface CommentRepositoryPort {

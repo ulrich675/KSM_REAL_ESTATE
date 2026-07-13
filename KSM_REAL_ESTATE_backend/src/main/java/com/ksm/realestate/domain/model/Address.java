@@ -3,7 +3,7 @@ package com.ksm.realestate.domain.model;
 /**
  * Address value object representing a physical location.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public class Address {

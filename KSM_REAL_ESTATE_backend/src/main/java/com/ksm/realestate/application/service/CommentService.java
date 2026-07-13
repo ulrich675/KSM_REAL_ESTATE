@@ -29,7 +29,7 @@ import java.time.Instant;
  * Ratings: like/dislike and like count delegate entirely to kernel-core
  * (no local equivalent needed).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j

@@ -17,7 +17,7 @@ import java.time.Instant;
  * Service managing user operations, delegating registration to kernel-core auth
  * and caching profile records locally.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Service

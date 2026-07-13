@@ -11,7 +11,7 @@ import java.util.List;
  * Fields aligned with {@code LoginResponse} schema from
  * https://kernel-core.yowyob.com/swagger-ui/index.html
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Data

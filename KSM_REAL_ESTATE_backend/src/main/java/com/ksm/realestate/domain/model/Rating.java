@@ -12,7 +12,7 @@ import java.time.Instant;
 /**
  * Rating domain model representing user property score.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

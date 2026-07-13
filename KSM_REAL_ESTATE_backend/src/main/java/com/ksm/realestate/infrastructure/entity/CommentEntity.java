@@ -10,7 +10,7 @@ import java.time.Instant;
  * Maps to the "comments" table (managed locally, Option A — no kernel-core
  * equivalent).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Table("comments")

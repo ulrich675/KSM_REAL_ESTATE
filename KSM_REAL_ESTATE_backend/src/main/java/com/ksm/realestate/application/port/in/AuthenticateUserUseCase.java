@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
  * Use‑case for authenticating a user.
  * Supports multi-step/MFA login.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 public interface AuthenticateUserUseCase {

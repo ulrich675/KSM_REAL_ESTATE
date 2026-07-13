@@ -3,7 +3,7 @@ package com.ksm.realestate.domain.exception;
 /**
  * Exception thrown when a payment processing fails.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public class PaymentFailedException extends BusinessException {

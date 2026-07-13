@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 /**
  * Outbound port for visit request persistence operations.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface VisitRequestRepositoryPort {

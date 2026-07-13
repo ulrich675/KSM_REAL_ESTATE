@@ -12,7 +12,7 @@ import java.time.Instant;
  * Maps to a table "properties". Uses simple types; location stored as WKT
  * string.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Table("properties")
@@ -57,6 +57,21 @@ public class PropertyEntity {
 
     @Column("owner_id")
     private Long ownerId;
+
+    @Column("image_main")
+    private String imageMain;
+
+    @Column("images_pieces_json")
+    private String imagesPiecesJson;
+
+    @Column("superficie")
+    private Integer superficie;
+
+    @Column("chambres")
+    private Integer chambres;
+
+    @Column("salles_de_bain")
+    private Integer sallesDeBain;
 
     @Column("created_at")
     private Instant createdAt;
@@ -184,5 +199,45 @@ public class PropertyEntity {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getImageMain() {
+        return imageMain;
+    }
+
+    public void setImageMain(String imageMain) {
+        this.imageMain = imageMain;
+    }
+
+    public String getImagesPiecesJson() {
+        return imagesPiecesJson;
+    }
+
+    public void setImagesPiecesJson(String imagesPiecesJson) {
+        this.imagesPiecesJson = imagesPiecesJson;
+    }
+
+    public Integer getSuperficie() {
+        return superficie;
+    }
+
+    public void setSuperficie(Integer superficie) {
+        this.superficie = superficie;
+    }
+
+    public Integer getChambres() {
+        return chambres;
+    }
+
+    public void setChambres(Integer chambres) {
+        this.chambres = chambres;
+    }
+
+    public Integer getSallesDeBain() {
+        return sallesDeBain;
+    }
+
+    public void setSallesDeBain(Integer sallesDeBain) {
+        this.sallesDeBain = sallesDeBain;
     }
 }

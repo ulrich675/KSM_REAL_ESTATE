@@ -13,7 +13,7 @@ import reactor.core.publisher.Flux;
 /**
  * Adapter implementing SearchPort using ReactiveElasticsearchOperations.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

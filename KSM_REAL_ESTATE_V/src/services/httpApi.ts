@@ -8,7 +8,7 @@
  * Tous les appels passent par le proxy Next.js configuré dans next.config.ts.
  * Le proxy redirige /api/* → http://localhost:8080/api/*
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 

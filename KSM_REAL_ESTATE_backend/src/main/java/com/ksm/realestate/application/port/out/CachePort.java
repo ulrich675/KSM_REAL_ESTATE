@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
  *
  * Provides reactive methods for getting, setting, and evicting cache entries.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface CachePort {

@@ -18,7 +18,7 @@ import java.time.Instant;
  * Local comments (PostgreSQL) and kernel-core ratings (likes, kernel comments)
  * are exposed through a unified API.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @RestController

@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Unit tests for KernelCorePaymentAdapter using MockWebServer.
  * Tests the updated flow: POST /api/accounting/invoices + /{id}/post
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 public class KernelCorePaymentAdapterTest {

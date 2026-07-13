@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 /**
  * Use‑case for processing a mock payment transaction.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface ProcessPaymentUseCase {

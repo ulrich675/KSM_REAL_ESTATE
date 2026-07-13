@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
  * Unit tests for AuthenticationService, covering login delegation, local user
  * cache sync, and MFA confirmation flows against KernelCoreAuthPort.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @ExtendWith(MockitoExtension.class)

@@ -25,7 +25,7 @@ import java.util.Map;
  * <li>POST /api/auth/refresh — RefreshTokenRequest</li>
  * </ul>
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j

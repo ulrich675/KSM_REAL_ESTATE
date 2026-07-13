@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
  *
  * Provides a reactive method to publish a payload to a specific topic.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface EventPublisherPort {

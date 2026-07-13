@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 /**
  * Base business exception for the application.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Getter

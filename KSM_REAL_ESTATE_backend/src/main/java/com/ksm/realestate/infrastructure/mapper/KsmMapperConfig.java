@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
  * during compilation. This is intentional: those fields are never blindly
  * copied from a DTO — they are set by the domain layer or the database.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @MapperConfig(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)

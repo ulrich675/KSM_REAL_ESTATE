@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 /**
  * Request payload for submitting a payment.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

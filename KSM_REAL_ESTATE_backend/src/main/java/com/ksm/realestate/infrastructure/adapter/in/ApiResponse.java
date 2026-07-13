@@ -1,7 +1,7 @@
 /**
  * Standard API response envelope used by all controllers.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 package com.ksm.realestate.infrastructure.adapter.in;

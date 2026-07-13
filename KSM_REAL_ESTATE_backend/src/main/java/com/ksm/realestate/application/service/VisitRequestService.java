@@ -12,7 +12,7 @@ import java.time.Instant;
  * VisitRequestService provides business logic for handling property visit
  * requests.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Service

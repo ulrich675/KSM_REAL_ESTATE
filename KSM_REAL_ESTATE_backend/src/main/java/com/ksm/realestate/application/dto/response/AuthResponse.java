@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for authentication response containing the JWT token.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 1
-      author: antigravity
+      author: ulrich675
       changes:
         - createTable:
             tableName: users

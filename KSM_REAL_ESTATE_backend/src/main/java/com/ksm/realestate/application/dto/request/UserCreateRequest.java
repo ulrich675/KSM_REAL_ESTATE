@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for user registration request.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Data

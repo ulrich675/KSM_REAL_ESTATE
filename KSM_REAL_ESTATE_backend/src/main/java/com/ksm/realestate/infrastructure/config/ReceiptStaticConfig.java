@@ -12,7 +12,7 @@ import java.nio.file.Path;
 /**
  * Configuration exposing locally-stored receipt PDFs via HTTP.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Configuration

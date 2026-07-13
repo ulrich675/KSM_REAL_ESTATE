@@ -9,7 +9,7 @@ import java.time.Duration;
 /**
  * Adapter implementing CachePort using ReactiveStringRedisTemplate.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

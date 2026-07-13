@@ -3,3 +3,7 @@ databaseChangeLog:
       file: db/changelog/changesets/01-create-schema.yaml
   - include:
       file: db/changelog/changesets/02-add-comments-table.yaml
+  - include:
+      file: db/changelog/changesets/03-add-property-fields.yaml
+  - include:
+      file: db/changelog/changesets/04-seed-demo-data.yaml

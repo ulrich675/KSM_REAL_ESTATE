@@ -6,7 +6,7 @@ import reactor.core.publisher.Flux;
 /**
  * Use‑case for query‑based property search (Elasticsearch).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface SearchUseCase {

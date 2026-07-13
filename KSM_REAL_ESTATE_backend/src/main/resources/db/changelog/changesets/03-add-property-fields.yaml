@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: ulrich675
+      changes:
+        - addColumn:
+            tableName: properties
+            columns:
+              - column:
+                  name: image_main
+                  type: varchar(1000)
+              - column:
+                  name: images_pieces_json
+                  type: varchar(2000)
+              - column:
+                  name: superficie
+                  type: integer
+              - column:
+                  name: chambres
+                  type: integer
+              - column:
+                  name: salles_de_bain
+                  type: integer

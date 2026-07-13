@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 /**
  * Outbound port for generating a payment receipt document.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface ReceiptGeneratorPort {

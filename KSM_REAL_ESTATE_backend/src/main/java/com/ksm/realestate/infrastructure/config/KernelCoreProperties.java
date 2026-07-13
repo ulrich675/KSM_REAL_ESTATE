@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuration properties class mapping for external kernel-core connection.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Data

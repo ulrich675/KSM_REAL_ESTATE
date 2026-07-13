@@ -1,0 +1,641 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: ulrich675
+      comment: Seed 5 demo owner users required as properties.owner_id references
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: user_id, valueNumeric: 1 }
+              - column: { name: email, value: 'owner1.demo@ksmrealestate.cm' }
+              - column: { name: password_hash, value: '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345' }
+              - column: { name: first_name, value: 'Jean' }
+              - column: { name: last_name, value: 'Ateba' }
+              - column: { name: role, value: 'PROPRIETOR' }
+              - column: { name: created_at, valueDate: '2026-01-15T09:00:00' }
+              - column: { name: updated_at, valueDate: '2026-01-15T09:00:00' }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: user_id, valueNumeric: 2 }
+              - column: { name: email, value: 'owner2.demo@ksmrealestate.cm' }
+              - column: { name: password_hash, value: '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345' }
+              - column: { name: first_name, value: 'Marie' }
+              - column: { name: last_name, value: 'Mballa' }
+              - column: { name: role, value: 'PROPRIETOR' }
+              - column: { name: created_at, valueDate: '2026-01-15T09:00:00' }
+              - column: { name: updated_at, valueDate: '2026-01-15T09:00:00' }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: user_id, valueNumeric: 3 }
+              - column: { name: email, value: 'owner3.demo@ksmrealestate.cm' }
+              - column: { name: password_hash, value: '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345' }
+              - column: { name: first_name, value: 'Paul' }
+              - column: { name: last_name, value: 'Ngo Bilong' }
+              - column: { name: role, value: 'PROPRIETOR' }
+              - column: { name: created_at, valueDate: '2026-01-15T09:00:00' }
+              - column: { name: updated_at, valueDate: '2026-01-15T09:00:00' }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: user_id, valueNumeric: 4 }
+              - column: { name: email, value: 'owner4.demo@ksmrealestate.cm' }
+              - column: { name: password_hash, value: '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345' }
+              - column: { name: first_name, value: 'Alice' }
+              - column: { name: last_name, value: 'Fotso' }
+              - column: { name: role, value: 'PROPRIETOR' }
+              - column: { name: created_at, valueDate: '2026-01-15T09:00:00' }
+              - column: { name: updated_at, valueDate: '2026-01-15T09:00:00' }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: user_id, valueNumeric: 5 }
+              - column: { name: email, value: 'owner5.demo@ksmrealestate.cm' }
+              - column: { name: password_hash, value: '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345' }
+              - column: { name: first_name, value: 'Robert' }
+              - column: { name: last_name, value: 'Eyenga' }
+              - column: { name: role, value: 'PROPRIETOR' }
+              - column: { name: created_at, valueDate: '2026-01-15T09:00:00' }
+              - column: { name: updated_at, valueDate: '2026-01-15T09:00:00' }
+  - changeSet:
+      id: 5
+      author: ulrich675
+      comment: Seed 25 demo properties for catalog initialization
+      changes:
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 1 }
+              - column: { name: title, value: 'Villa familiale securisee - Bastos' }
+              - column: { name: description, value: 'Villa familiale securisee - Bastos. Situe au coeur de Bastos, Yaoundé, ce bien de 300m2 offre un cadre de vie ideal avec 4 chambre(s) et 4 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 95000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 7 Bastos' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0009' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.5082 3.890589)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 300 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 4 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 2 }
+              - column: { name: title, value: 'Appartement lumineux - Omnisport' }
+              - column: { name: description, value: 'Appartement lumineux - Omnisport. Situe au coeur de Omnisport, Yaoundé, ce bien de 100m2 offre un cadre de vie ideal avec 2 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 35000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 36 Omnisport' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.508438 3.851739)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 100 }
+              - column: { name: chambres, valueNumeric: 2 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 3 }
+              - column: { name: title, value: 'Studio entierement equipe - Nsimeyong' }
+              - column: { name: description, value: 'Studio entierement equipe - Nsimeyong. Situe au coeur de Nsimeyong, Yaoundé, ce bien de 40m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 15000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 38 Nsimeyong' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0005' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.514026 3.85102)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 3 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 40 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 4 }
+              - column: { name: title, value: 'Villa duplex de standing - Mvan' }
+              - column: { name: description, value: 'Villa duplex de standing - Mvan. Situe au coeur de Mvan, Yaoundé, ce bien de 400m2 offre un cadre de vie ideal avec 5 chambre(s) et 3 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 175000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 10 Mvan' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.51013 3.836189)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 4 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 400 }
+              - column: { name: chambres, valueNumeric: 5 }
+              - column: { name: salles_de_bain, valueNumeric: 3 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 5 }
+              - column: { name: title, value: 'Appartement lumineux - Emana' }
+              - column: { name: description, value: 'Appartement lumineux - Emana. Situe au coeur de Emana, Yaoundé, ce bien de 80m2 offre un cadre de vie ideal avec 3 chambre(s) et 2 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 55000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 39 Emana' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0005' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.496732 3.929144)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 5 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 80 }
+              - column: { name: chambres, valueNumeric: 3 }
+              - column: { name: salles_de_bain, valueNumeric: 2 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 6 }
+              - column: { name: title, value: 'Studio ideal etudiant - Odza' }
+              - column: { name: description, value: 'Studio ideal etudiant - Odza. Situe au coeur de Odza, Yaoundé, ce bien de 40m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 12000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 6 Odza' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0009' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.534595 3.806143)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 40 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 7 }
+              - column: { name: title, value: 'Villa familiale securisee - Biyem-Assi' }
+              - column: { name: description, value: 'Villa familiale securisee - Biyem-Assi. Situe au coeur de Biyem-Assi, Yaoundé, ce bien de 300m2 offre un cadre de vie ideal avec 6 chambre(s) et 2 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 150000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 3 Biyem-Assi' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.482573 3.845864)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 300 }
+              - column: { name: chambres, valueNumeric: 6 }
+              - column: { name: salles_de_bain, valueNumeric: 2 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 8 }
+              - column: { name: title, value: 'Appartement meuble haut standing - Mendong' }
+              - column: { name: description, value: 'Appartement meuble haut standing - Mendong. Situe au coeur de Mendong, Yaoundé, ce bien de 140m2 offre un cadre de vie ideal avec 3 chambre(s) et 2 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 35000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 24 Mendong' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0003' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.479704 3.840461)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 3 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 140 }
+              - column: { name: chambres, valueNumeric: 3 }
+              - column: { name: salles_de_bain, valueNumeric: 2 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 9 }
+              - column: { name: title, value: 'Studio cosy proche commodites - Essos' }
+              - column: { name: description, value: 'Studio cosy proche commodites - Essos. Situe au coeur de Essos, Yaoundé, ce bien de 30m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 12000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 35 Essos' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.51919 3.867404)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 4 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 30 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 10 }
+              - column: { name: title, value: 'Villa avec jardin paysager - Ngousso' }
+              - column: { name: description, value: 'Villa avec jardin paysager - Ngousso. Situe au coeur de Ngousso, Yaoundé, ce bien de 450m2 offre un cadre de vie ideal avec 4 chambre(s) et 4 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 175000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 21 Ngousso' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0001' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.527589 3.878268)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 5 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 450 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 4 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 11 }
+              - column: { name: title, value: 'Appartement 3 pieces renove - Bonapriso' }
+              - column: { name: description, value: 'Appartement 3 pieces renove - Bonapriso. Situe au coeur de Bonapriso, Douala, ce bien de 120m2 offre un cadre de vie ideal avec 2 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 55000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 37 Bonapriso' }
+              - column: { name: city, value: 'Douala' }
+              - column: { name: state, value: 'Littoral' }
+              - column: { name: zip_code, value: '0006' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(9.700642 4.024581)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 120 }
+              - column: { name: chambres, valueNumeric: 2 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 12 }
+              - column: { name: title, value: 'Studio entierement equipe - Akwa' }
+              - column: { name: description, value: 'Studio entierement equipe - Akwa. Situe au coeur de Akwa, Douala, ce bien de 35m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 15000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 9 Akwa' }
+              - column: { name: city, value: 'Douala' }
+              - column: { name: state, value: 'Littoral' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(9.699985 4.044253)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 35 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 13 }
+              - column: { name: title, value: 'Villa avec jardin paysager - Bonanjo' }
+              - column: { name: description, value: 'Villa avec jardin paysager - Bonanjo. Situe au coeur de Bonanjo, Douala, ce bien de 400m2 offre un cadre de vie ideal avec 6 chambre(s) et 3 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 150000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 24 Bonanjo' }
+              - column: { name: city, value: 'Douala' }
+              - column: { name: state, value: 'Littoral' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(9.69578 4.0499)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 3 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 400 }
+              - column: { name: chambres, valueNumeric: 6 }
+              - column: { name: salles_de_bain, valueNumeric: 3 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 14 }
+              - column: { name: title, value: 'Appartement vue degagee - Bali' }
+              - column: { name: description, value: 'Appartement vue degagee - Bali. Situe au coeur de Bali, Douala, ce bien de 80m2 offre un cadre de vie ideal avec 2 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 35000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 11 Bali' }
+              - column: { name: city, value: 'Douala' }
+              - column: { name: state, value: 'Littoral' }
+              - column: { name: zip_code, value: '0007' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(9.682767 4.049947)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 4 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 80 }
+              - column: { name: chambres, valueNumeric: 2 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 15 }
+              - column: { name: title, value: 'Studio ideal etudiant - Deido' }
+              - column: { name: description, value: 'Studio ideal etudiant - Deido. Situe au coeur de Deido, Douala, ce bien de 35m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 22000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 36 Deido' }
+              - column: { name: city, value: 'Douala' }
+              - column: { name: state, value: 'Littoral' }
+              - column: { name: zip_code, value: '0001' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(9.702695 4.066928)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 5 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1523192193543-6e7296d960e4?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 35 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 16 }
+              - column: { name: title, value: 'Villa de prestige - Bastos' }
+              - column: { name: description, value: 'Villa de prestige - Bastos. Situe au coeur de Bastos, Yaoundé, ce bien de 350m2 offre un cadre de vie ideal avec 4 chambre(s) et 3 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 110000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 28 Bastos' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0003' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.509991 3.891406)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 350 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 3 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 17 }
+              - column: { name: title, value: 'Appartement neuf - Omnisport' }
+              - column: { name: description, value: 'Appartement neuf - Omnisport. Situe au coeur de Omnisport, Yaoundé, ce bien de 100m2 offre un cadre de vie ideal avec 4 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 48000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 20 Omnisport' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0009' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.519076 3.859074)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1523758472083-2c72c5aca4e8?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 100 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 18 }
+              - column: { name: title, value: 'Studio moderne - Nsimeyong' }
+              - column: { name: description, value: 'Studio moderne - Nsimeyong. Situe au coeur de Nsimeyong, Yaoundé, ce bien de 35m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 12000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 32 Nsimeyong' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0001' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.503057 3.848879)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 3 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1592595896616-c37162298647?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 35 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 19 }
+              - column: { name: title, value: 'Villa familiale securisee - Mvan' }
+              - column: { name: description, value: 'Villa familiale securisee - Mvan. Situe au coeur de Mvan, Yaoundé, ce bien de 250m2 offre un cadre de vie ideal avec 4 chambre(s) et 4 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 95000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 6 Mvan' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0002' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.51726 3.822237)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 4 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 250 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 4 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 20 }
+              - column: { name: title, value: 'Appartement moderne securise - Emana' }
+              - column: { name: description, value: 'Appartement moderne securise - Emana. Situe au coeur de Emana, Yaoundé, ce bien de 100m2 offre un cadre de vie ideal avec 4 chambre(s) et 2 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 42000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 36 Emana' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0003' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.50632 3.924638)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 5 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 100 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 2 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 21 }
+              - column: { name: title, value: 'Studio entierement equipe - Odza' }
+              - column: { name: description, value: 'Studio entierement equipe - Odza. Situe au coeur de Odza, Yaoundé, ce bien de 30m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 15000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 20 Odza' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0007' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.537449 3.795301)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1599809275671-b5942cabc7a2?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 30 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 22 }
+              - column: { name: title, value: 'Villa contemporaine - Biyem-Assi' }
+              - column: { name: description, value: 'Villa contemporaine - Biyem-Assi. Situe au coeur de Biyem-Assi, Yaoundé, ce bien de 400m2 offre un cadre de vie ideal avec 4 chambre(s) et 2 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 150000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 15 Biyem-Assi' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0002' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.482998 3.859903)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1598228723793-52759bba239c?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 400 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 2 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 23 }
+              - column: { name: title, value: 'Appartement meuble haut standing - Mendong' }
+              - column: { name: description, value: 'Appartement meuble haut standing - Mendong. Situe au coeur de Mendong, Yaoundé, ce bien de 100m2 offre un cadre de vie ideal avec 2 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 65000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 4 Mendong' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.471766 3.831762)' }
+              - column: { name: category, value: 'Appartement' }
+              - column: { name: owner_id, valueNumeric: 3 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1591474200742-8e512e6f98f8?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 100 }
+              - column: { name: chambres, valueNumeric: 2 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 24 }
+              - column: { name: title, value: 'Studio cosy proche commodites - Essos' }
+              - column: { name: description, value: 'Studio cosy proche commodites - Essos. Situe au coeur de Essos, Yaoundé, ce bien de 30m2 offre un cadre de vie ideal avec 1 chambre(s) et 1 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 12000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 18 Essos' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0008' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.515628 3.861348)' }
+              - column: { name: category, value: 'Studio' }
+              - column: { name: owner_id, valueNumeric: 4 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Chambre principale", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 30 }
+              - column: { name: chambres, valueNumeric: 1 }
+              - column: { name: salles_de_bain, valueNumeric: 1 }
+        - insert:
+            tableName: properties
+            columns:
+              - column: { name: property_id, valueNumeric: 25 }
+              - column: { name: title, value: 'Villa de prestige - Ngousso' }
+              - column: { name: description, value: 'Villa de prestige - Ngousso. Situe au coeur de Ngousso, Yaoundé, ce bien de 400m2 offre un cadre de vie ideal avec 4 chambre(s) et 3 salle(s) de bain. Proche des commodites, ecoles et axes routiers principaux.' }
+              - column: { name: price_amount, valueNumeric: 150000000 }
+              - column: { name: price_currency, value: 'XAF' }
+              - column: { name: street, value: 'Rue 27 Ngousso' }
+              - column: { name: city, value: 'Yaoundé' }
+              - column: { name: state, value: 'Centre' }
+              - column: { name: zip_code, value: '0004' }
+              - column: { name: country, value: 'Cameroun' }
+              - column: { name: location_wkt, value: 'POINT(11.522646 3.879285)' }
+              - column: { name: category, value: 'Villa' }
+              - column: { name: owner_id, valueNumeric: 5 }
+              - column: { name: created_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: updated_at, valueDate: '2026-02-01T10:00:00' }
+              - column: { name: image_main, value: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80' }
+              - column: { name: images_pieces_json, value: '[{"label": "Salon", "url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80"}, {"label": "Cuisine", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80"}]' }
+              - column: { name: superficie, valueNumeric: 400 }
+              - column: { name: chambres, valueNumeric: 4 }
+              - column: { name: salles_de_bain, valueNumeric: 3 }

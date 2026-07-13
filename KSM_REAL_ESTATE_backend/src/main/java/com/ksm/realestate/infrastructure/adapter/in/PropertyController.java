@@ -2,7 +2,7 @@
  * REST controller exposing property management endpoints.
  * Uses reactive types and returns a standardized ApiResponse envelope.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 package com.ksm.realestate.infrastructure.adapter.in;

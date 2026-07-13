@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 /**
  * CustomUserDetailsService loads a UserDetails from the User domain model.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Component

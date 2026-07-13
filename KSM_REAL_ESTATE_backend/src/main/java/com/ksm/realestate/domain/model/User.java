@@ -12,7 +12,7 @@ import java.time.Instant;
 /**
  * User domain model representing an application user.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data

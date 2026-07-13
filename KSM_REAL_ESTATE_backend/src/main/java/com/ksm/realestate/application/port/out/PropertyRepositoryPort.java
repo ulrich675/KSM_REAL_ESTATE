@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 /**
  * Outbound port for property persistence operations.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface PropertyRepositoryPort {

@@ -7,7 +7,7 @@ import reactor.core.publisher.Flux;
 /**
  * Use‑case for advanced property search.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface SearchPropertiesUseCase {

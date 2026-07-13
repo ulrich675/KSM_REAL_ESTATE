@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
  * Required headers: X-Tenant-Id (path param tierId is the kernel-core entity
  * UUID).
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-10
  */
 @Slf4j

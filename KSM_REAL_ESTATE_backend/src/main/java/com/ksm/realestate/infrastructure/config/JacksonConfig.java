@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Jackson configuration registering the snake_case naming strategy globally.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Configuration

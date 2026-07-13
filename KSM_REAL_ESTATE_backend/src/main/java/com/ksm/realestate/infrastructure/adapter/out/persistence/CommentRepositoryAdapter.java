@@ -13,7 +13,7 @@ import java.time.Instant;
 /**
  * R2DBC-backed adapter for comment persistence.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Component

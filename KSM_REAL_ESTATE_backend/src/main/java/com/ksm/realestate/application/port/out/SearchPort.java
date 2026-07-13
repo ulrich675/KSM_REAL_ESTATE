@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
  *
  * Provides a reactive stream of search results based on a query string.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 public interface SearchPort {

@@ -11,7 +11,7 @@ import java.time.Instant;
 /**
  * Property domain model representing a real estate listing.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-08
  */
 @Data
@@ -45,6 +45,12 @@ public class Property {
 
     @NotNull
     private Long ownerId;
+
+    private String imageMain;
+    private String imagesPiecesJson;
+    private Integer superficie;
+    private Integer chambres;
+    private Integer sallesDeBain;
 
     private Instant createdAt;
     private Instant updatedAt;

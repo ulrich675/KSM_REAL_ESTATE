@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * Command for registering a user on the external kernel-core auth system.
  *
- * @author Antigravity
+ * @author ulrich675
  * @date 2026-07-09
  */
 @Data
