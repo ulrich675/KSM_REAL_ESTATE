@@ -1,101 +1,97 @@
-services:
+# docker-compose.yml — KSM Real Estate Full Stack
+# Author: ulrich675
+# Date: 2026-07-13
+#
+# Usage: docker-compose up --build
+# Services: PostgreSQL · Redis · Elasticsearch · Kafka · Backend · Frontend
 
+version: '3.9'
+
+services:
+  # ─── PostgreSQL ────────────────────────────────────────────
   postgres:
-    image: postgres:16-alpine
-    container_name: ksm-postgres
+    image: postgres:15-alpine
+    container_name: ksm_postgres
+    restart: unless-stopped
     environment:
+      POSTGRES_DB: ksm_real_estate
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ksm_real_estate
-    ports:
-      - "5432:5432"
     volumes:
-      - ksm_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ksm_real_estate"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - ksm-network
+      - ksm_net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ─── Redis ────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: ksm-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    container_name: ksm_redis
+    restart: unless-stopped
     networks:
-      - ksm-network
+      - ksm_net
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ─── Elasticsearch ─────────────────────────────────────────
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
-    container_name: ksm-elasticsearch
+    container_name: ksm_elasticsearch
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"'"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
     networks:
-      - ksm-network
+      - ksm_net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
+  # ─── Zookeeper ─────────────────────────────────────────────
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
-    container_name: ksm-zookeeper
+    image: confluentinc/cp-zookeeper:7.5.4
+    container_name: ksm_zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - ksm-network
+      - ksm_net
 
+  # ─── Kafka ─────────────────────────────────────────────────
   kafka:
-    image: confluentinc/cp-kafka:7.6.1
-    container_name: ksm-kafka
+    image: confluentinc/cp-kafka:7.5.4
+    container_name: ksm_kafka
+    restart: unless-stopped
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    ports:
-      - "9092:9092"
-    healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
     networks:
-      - ksm-network
+      - ksm_net
 
+  # ─── Backend Spring Boot ───────────────────────────────────
   backend:
     build:
       context: ./KSM_REAL_ESTATE_backend
       dockerfile: Dockerfile
-    container_name: ksm-backend
-    env_file:
-      - ./KSM_REAL_ESTATE_backend/.env
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      ELASTICSEARCH_URIS: http://elasticsearch:9200
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    ports:
-      - "8080:8080"
+    container_name: ksm_backend
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,30 +99,65 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # PostgreSQL
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      R2DBC_URL: r2dbc:postgresql://postgres:5432/ksm_real_estate
+      JDBC_URL: jdbc:postgresql://postgres:5432/ksm_real_estate
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Elasticsearch
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-ksmRealEstateSecretForProductionChangeMe}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      # Kernel-Core
+      KERNEL_CORE_BASE_URL: ${KERNEL_CORE_BASE_URL:-http://localhost:8080}
+      KERNEL_CORE_CLIENT_ID: ${KERNEL_CORE_CLIENT_ID}
+      KERNEL_CORE_API_KEY: ${KERNEL_CORE_API_KEY}
+      KERNEL_CORE_TENANT_ID: ${KERNEL_CORE_TENANT_ID}
+      KERNEL_CORE_ORGANIZATION_ID: ${KERNEL_CORE_ORGANIZATION_ID:-22222222-2222-2222-2222-222222222222}
+      # CORS
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
     networks:
-      - ksm-network
+      - ksm_net
 
+  # ─── Frontend Next.js ──────────────────────────────────────
   frontend:
     build:
       context: ./KSM_REAL_ESTATE_V
       dockerfile: Dockerfile
-    container_name: ksm-frontend
-    env_file:
-      - ./KSM_REAL_ESTATE_V/.env
+      args:
+        # The backend URL used at build-time for Next.js rewrites
+        BACKEND_URL: http://backend:8080
+    container_name: ksm_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
     environment:
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_APP_TITLE: KSM Real Estate
+      # For Next.js rewrite proxy at runtime:
       BACKEND_URL: http://backend:8080
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
     networks:
-      - ksm-network
+      - ksm_net
 
-networks:
-  ksm-network:
-    driver: bridge
-
+# ─── Volumes persistants ──────────────────────────────────────
 volumes:
-  ksm_postgres_data:
+  postgres_data:
+  es_data:
+
+    # ─── Réseau interne ──────────────────────────────────────────
+networks:
+  ksm_net:
+    driver: bridge

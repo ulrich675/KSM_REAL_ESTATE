@@ -6,4 +6,4 @@ databaseChangeLog:
   - include:
       file: db/changelog/changesets/03-add-property-fields.yaml
   - include:
-      file: db/changelog/changesets/04-seed-demo-data.yaml
+      file: db/changelog/changesets/04-seed-data.yaml

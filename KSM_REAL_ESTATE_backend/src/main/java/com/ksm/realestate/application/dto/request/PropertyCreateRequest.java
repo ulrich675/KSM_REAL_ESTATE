@@ -63,4 +63,14 @@ public class PropertyCreateRequest {
 
     @NotNull
     private Long ownerId;
+
+    @Size(max = 1000)
+    private String imageMain;
+
+    @Size(max = 2000)
+    private String imagesPiecesJson;
+
+    private Integer superficie;
+    private Integer chambres;
+    private Integer sallesDeBain;
 }

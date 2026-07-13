@@ -1,0 +1,206 @@
+databaseChangeLog:
+  # =====================================================================
+  # Seed data: 25 biens immobiliers distincts
+  # Author: ulrich675
+  # Date: 2026-07-13
+  # =====================================================================
+  - changeSet:
+      id: 4
+      author: ulrich675
+      changes:
+        # ---- Utilisateurs (propriétaires + admin + clients) ----
+        - sql:
+            sql: >-
+              INSERT INTO users (email, password_hash, first_name, last_name, role, created_at, updated_at) VALUES
+              ('admin@ksm.cm', '$2a$12$dummy_admin_hash', 'Admin', 'KSM', 'ADMIN', NOW(), NOW()),
+              ('ulrich@ksm.cm', '$2a$12$dummy_prop1_hash', 'Ulrich', 'Kuate', 'PROPRIETAIRE', NOW(), NOW()),
+              ('marcelle@ksm.cm', '$2a$12$dummy_prop2_hash', 'Marcelle', 'Ngo', 'PROPRIETAIRE', NOW(), NOW()),
+              ('donald@ksm.cm', '$2a$12$dummy_prop3_hash', 'Donald', 'Tchameni', 'PROPRIETAIRE', NOW(), NOW()),
+              ('sarah@ksm.cm', '$2a$12$dummy_prop4_hash', 'Sarah', 'Bell', 'PROPRIETAIRE', NOW(), NOW()),
+              ('client@ksm.cm', '$2a$12$dummy_client1_hash', 'Christian', 'Bella', 'CLIENT', NOW(), NOW()),
+              ('fiona@ksm.cm', '$2a$12$dummy_client2_hash', 'Fiona', 'Minka', 'CLIENT', NOW(), NOW())
+              ON CONFLICT (email) DO NOTHING;
+
+        # ---- 25 Biens immobiliers ----
+        - sql:
+            sql: >-
+              INSERT INTO properties (
+                title, description, price_amount, price_currency, street, city, state, zip_code, country,
+                location_wkt, category, owner_id,
+                image_main, superficie, chambres, salles_de_bain, created_at, updated_at
+              ) VALUES
+
+              ('Villa Akwa Prestige',
+               'Somptueuse villa de maître au coeur d''Akwa. Finitions haut de gamme, jardin arboré et espaces de réception généreux.',
+               450000000, 'XAF', 'Avenue Joffre', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7679 4.0511)', 'Villa', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+               450, 5, 6, NOW(), NOW()),
+
+              ('Villa de la Vallée Yaoundé',
+               'Au calme en quartier résidentiel avec vue panoramique sur les collines. Piscine et dépendances.',
+               380000000, 'XAF', 'Rue de la Vallée', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5167 3.8667)', 'Villa', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80',
+               380, 4, 4, NOW(), NOW()),
+
+              ('Villa Bonamoussadi Moderne',
+               'Architecture contemporaine, grand salon, cuisine ouverte et espace extérieur aménagé.',
+               290000000, 'XAF', 'Rue des Palmiers', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.6833 4.0833)', 'Villa', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80',
+               320, 4, 3, NOW(), NOW()),
+
+              ('Villa des Cocotiers Kribi',
+               'Exceptionnelle villa avec accès privé à la plage, grande piscine et vue magnifique sur l''océan.',
+               380000000, 'XAF', 'Bord de mer', 'Kribi', 'Sud', '0000', 'CM',
+               'POINT(9.9167 2.9333)', 'Villa', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=1200&q=80',
+               500, 5, 5, NOW(), NOW()),
+
+              ('Villa Bastos Ambassadeurs',
+               'Quartier diplomatique, haut standing. Securisée 24/7, salle de cinema, double garage.',
+               520000000, 'XAF', 'Rue des Ambassadeurs', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5200 3.8900)', 'Villa', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80',
+               620, 6, 7, NOW(), NOW()),
+
+              ('Villa Golf Résidentiel',
+               'Adossée au golf de la ville, cette villa lumineuse offre une tranquillité absolue avec jardin privé.',
+               340000000, 'XAF', 'Avenue du Golf', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5100 3.8750)', 'Villa', (SELECT user_id FROM users WHERE email=''sarah@ksm.cm''),
+               'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80',
+               400, 5, 4, NOW(), NOW()),
+
+              ('Appartement Kribi Lounge',
+               'Appartement de standing meublé avec accès direct à la plage et terrasse panoramique.',
+               120000000, 'XAF', 'Boulevard de la Plage', 'Kribi', 'Sud', '0000', 'CM',
+               'POINT(9.9200 2.9400)', 'Appartement', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+               160, 3, 2, NOW(), NOW()),
+
+              ('Appartement Bastos Skyline',
+               'Au 6ème étage, vue imprenable à 360° sur Yaoundé. Résidence neuve sécurisée.',
+               210000000, 'XAF', 'Rue Bastos Centre', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5170 3.8833)', 'Appartement', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1598257006458-087169a1f08d?auto=format&fit=crop&w=1200&q=80',
+               220, 4, 3, NOW(), NOW()),
+
+              ('Appartement Bonapriso Chic',
+               'Spacieux et lumineux dans une rue calme de Bonapriso. Cuisine américaine équipée.',
+               180000000, 'XAF', 'Avenue Laurence', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7667 4.0667)', 'Appartement', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+               190, 3, 3, NOW(), NOW()),
+
+              ('Appartement Denver Résidence',
+               'Architecture moderne à Denver. Double vitrage, climatisation centrale et parking sous-terrain.',
+               145000000, 'XAF', 'Rue de Denver', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7667 4.0833)', 'Appartement', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=1200&q=80',
+               175, 3, 2, NOW(), NOW()),
+
+              ('Appartement Odza Soleil',
+               'Bel appartement familial à Odza, proche des écoles internationales et commodités.',
+               110000000, 'XAF', 'Carrefour Odza', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5500 3.8667)', 'Appartement', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?auto=format&fit=crop&w=1200&q=80',
+               150, 3, 2, NOW(), NOW()),
+
+              ('Appartement Bonamoussadi Familial',
+               'Idéal pour une famille à Bonamoussadi. Sécurité 24h/24, balcon et parking.',
+               95000000, 'XAF', 'Cité Verte Bonamoussadi', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.6833 4.0833)', 'Appartement', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1600607686527-9fb2c0903ede?auto=format&fit=crop&w=1200&q=80',
+               140, 3, 2, NOW(), NOW()),
+
+              ('Appartement Ngoa Penthouse',
+               'Somptueux penthouse dominant le quartier universitaire. Prestations haut de gamme.',
+               280000000, 'XAF', 'Avenue de l''Université', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5333 3.8833)', 'Appartement', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1200&q=80',
+               310, 4, 4, NOW(), NOW()),
+
+              ('Appartement Akwa Port Vue',
+               'Appartement lumineux avec vue sur le port depuis le salon. Proche du centre d''affaires.',
+               165000000, 'XAF', 'Boulevard du Port', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7500 4.0500)', 'Appartement', (SELECT user_id FROM users WHERE email=''sarah@ksm.cm''),
+               'https://images.unsplash.com/photo-1617806118233-18e1db207f62?auto=format&fit=crop&w=1200&q=80',
+               130, 2, 2, NOW(), NOW()),
+
+              ('Studio VIP Bonapriso',
+               'Studio haut de gamme meublé à Bonapriso. Climatisation, piscine de résidence.',
+               65000000, 'XAF', 'Rue des Flamboyants', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7667 4.0650)', 'Studio', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1602941525421-8f8b81d3edbb?auto=format&fit=crop&w=1200&q=80',
+               60, 1, 1, NOW(), NOW()),
+
+              ('Studio Bastos Executive',
+               'Idéal pour cadres ou expatriés à Yaoundé. Parfaitement équipé, sécurisé et connecté.',
+               85000000, 'XAF', 'Cité Bastos', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5167 3.8833)', 'Studio', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&w=1200&q=80',
+               75, 1, 1, NOW(), NOW()),
+
+              ('Studio Akwa Cozy',
+               'Petit cocon douillet et moderne en plein coeur d''Akwa. Parfait pour étudiant ou jeune professionnel.',
+               45000000, 'XAF', 'Rue des Lilas', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7667 4.0500)', 'Studio', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80',
+               45, 1, 1, NOW(), NOW()),
+
+              ('Studio Kribi Wave',
+               'Studio entièrement aménagé avec balcon face mer à Kribi. Investissement locatif rentable.',
+               55000000, 'XAF', 'Rue de la Mer', 'Kribi', 'Sud', '0000', 'CM',
+               'POINT(9.9167 2.9300)', 'Studio', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?auto=format&fit=crop&w=1200&q=80',
+               50, 1, 1, NOW(), NOW()),
+
+              ('Studio Denver Loft',
+               'Style industriel haut standing à Denver. Grande hauteur sous plafond, mezzanine et mobilier design.',
+               72000000, 'XAF', 'Avenue Denver', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7667 4.0800)', 'Studio', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=1200&q=80',
+               80, 1, 1, NOW(), NOW()),
+
+              ('Studio Bastos Student',
+               'Studio propre et sécurisé à Bastos. Accès facile aux transports et commerces.',
+               40000000, 'XAF', 'Quartier Bastos Nord', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5167 3.8850)', 'Studio', (SELECT user_id FROM users WHERE email=''marcelle@ksm.cm''),
+               'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+               40, 1, 1, NOW(), NOW()),
+
+              ('Studio Odza Budget',
+               'Studio propre et meublé à Odza. Eau de forage, groupe électrogène disponible.',
+               35000000, 'XAF', 'Carrefour Odza Sud', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5500 3.8650)', 'Studio', (SELECT user_id FROM users WHERE email=''sarah@ksm.cm''),
+               'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=1200&q=80',
+               48, 1, 1, NOW(), NOW()),
+
+              ('Studio Kribi Plage Simple',
+               'Joli studio rustique tout proche des vagues à Kribi. Affaire excellente pour investissement locatif.',
+               30000000, 'XAF', 'Plage Kribi Centre', 'Kribi', 'Sud', '0000', 'CM',
+               'POINT(9.9150 2.9350)', 'Studio', (SELECT user_id FROM users WHERE email=''ulrich@ksm.cm''),
+               'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+               42, 1, 1, NOW(), NOW()),
+
+              ('Villa Douala Port Prestige',
+               'Grande villa avec vue sur le port industriel. Idéale pour un résident continental haut cadre.',
+               480000000, 'XAF', 'Boulevard Côtier', 'Douala', 'Littoral', '0000', 'CM',
+               'POINT(9.7000 4.0400)', 'Villa', (SELECT user_id FROM users WHERE email=''donald@ksm.cm''),
+               'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80',
+               550, 6, 6, NOW(), NOW()),
+
+              ('Appartement Mvan Nouveau',
+               'Appartement neuf dans la cité résidentielle de Mvan, proche des services. Très lumineux.',
+               88000000, 'XAF', 'Cité Mvan', 'Yaoundé', 'Centre', '0000', 'CM',
+               'POINT(11.5600 3.8500)', 'Appartement', (SELECT user_id FROM users WHERE email=''sarah@ksm.cm''),
+               'https://images.unsplash.com/photo-1560185008-b03126090c10?auto=format&fit=crop&w=1200&q=80',
+               120, 2, 2, NOW(), NOW()),
+
+              ('Villa Limbe Prestige Côtière',
+               'Villa bioclimatique face à l''Atlantique à Limbe. Matériaux nobles, terrasse panoramique.',
+               420000000, 'XAF', 'Victoria Beach', 'Limbe', 'Sud-Ouest', '0000', 'CM',
+               'POINT(9.2167 4.0167)', 'Villa', (SELECT user_id FROM users WHERE email=''sarah@ksm.cm''),
+               'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=80',
+               480, 5, 5, NOW(), NOW());
