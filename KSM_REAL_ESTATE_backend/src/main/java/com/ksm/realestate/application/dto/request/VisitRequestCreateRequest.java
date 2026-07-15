@@ -23,4 +23,8 @@ public class VisitRequestCreateRequest {
 
     @NotNull
     private Long userId;
+
+    private String type;
+
+    private java.time.Instant visitDate;
 }

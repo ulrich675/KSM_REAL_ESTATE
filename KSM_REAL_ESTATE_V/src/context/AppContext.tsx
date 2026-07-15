@@ -316,24 +316,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const activeClientId = currentUser.id;
-        const cl = clients.find(c => c.id === activeClientId);
-        const isLiked = cl?.likedBienIds.includes(bienId);
+        const activeActorId = currentUser.id;
+        const role = currentUser.role;
+
+        // Déterminer si le bien est déjà liké par l'acteur courant
+        let isLiked = false;
+        if (role === 'client') {
+            const cl = clients.find(c => c.id === activeActorId);
+            isLiked = cl?.likedBienIds.includes(bienId) || false;
+        } else if (role === 'proprietaire') {
+            const prop = proprietaires.find(p => p.id === activeActorId);
+            isLiked = (prop as any)?.likedBienIds?.includes(bienId) || false;
+        } else if (role === 'admin') {
+            isLiked = (currentUser as any).likedBienIds?.includes(bienId) || false;
+        }
 
         try {
-            await apiService.likeProperty(bienId, activeClientId, !isLiked);
+            await apiService.likeProperty(bienId, activeActorId, !isLiked);
 
-            const updatedClients = clients.map((clItem) => {
-                if (clItem.id === activeClientId) {
-                    const liked = clItem.likedBienIds.includes(bienId);
-                    return {
-                        ...clItem,
-                        likedBienIds: liked ? clItem.likedBienIds.filter((id) => id !== bienId) : [...clItem.likedBienIds, bienId],
-                    };
-                }
-                return clItem;
-            });
-            setClients(updatedClients);
+            if (role === 'client') {
+                const updatedClients = clients.map((clItem) => {
+                    if (clItem.id === activeActorId) {
+                        const liked = clItem.likedBienIds.includes(bienId);
+                        return {
+                            ...clItem,
+                            likedBienIds: liked ? clItem.likedBienIds.filter((id) => id !== bienId) : [...clItem.likedBienIds, bienId],
+                        };
+                    }
+                    return clItem;
+                });
+                setClients(updatedClients);
+                localStorage.setItem('ksm_clients', JSON.stringify(updatedClients));
+            } else if (role === 'proprietaire') {
+                const updatedProprietaires = proprietaires.map((propItem) => {
+                    if (propItem.id === activeActorId) {
+                        const likedList = (propItem as any).likedBienIds || [];
+                        const liked = likedList.includes(bienId);
+                        return {
+                            ...propItem,
+                            likedBienIds: liked ? likedList.filter((id: string) => id !== bienId) : [...likedList, bienId],
+                        };
+                    }
+                    return propItem;
+                });
+                setProprietaires(updatedProprietaires);
+                localStorage.setItem('ksm_proprietaires', JSON.stringify(updatedProprietaires));
+            } else if (role === 'admin') {
+                const likedList = (currentUser as any).likedBienIds || [];
+                const liked = likedList.includes(bienId);
+                const updatedUser = {
+                    ...currentUser,
+                    likedBienIds: liked ? likedList.filter((id: string) => id !== bienId) : [...likedList, bienId],
+                };
+                setCurrentUser(updatedUser);
+                localStorage.setItem('ksm_session', JSON.stringify(updatedUser));
+            }
 
             const totalLikes = await apiService.getTotalLikes(bienId);
             const updatedBiens = biens.map((b) => {
@@ -343,32 +380,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 return b;
             });
             setBiens(updatedBiens);
+            localStorage.setItem('ksm_biens', JSON.stringify(updatedBiens));
         } catch (e) {
             console.error('[KSM] toggleLike failed:', e);
             // Fallback purely local
-            const updatedClients = clients.map((clItem) => {
-                if (clItem.id === activeClientId) {
-                    const liked = clItem.likedBienIds.includes(bienId);
-                    return {
-                        ...clItem,
-                        likedBienIds: liked ? clItem.likedBienIds.filter((id) => id !== bienId) : [...clItem.likedBienIds, bienId],
-                    };
-                }
-                return clItem;
-            });
-            setClients(updatedClients);
+            if (role === 'client') {
+                const updatedClients = clients.map((clItem) => {
+                    if (clItem.id === activeActorId) {
+                        const liked = clItem.likedBienIds.includes(bienId);
+                        return {
+                            ...clItem,
+                            likedBienIds: liked ? clItem.likedBienIds.filter((id) => id !== bienId) : [...clItem.likedBienIds, bienId],
+                        };
+                    }
+                    return clItem;
+                });
+                setClients(updatedClients);
+                localStorage.setItem('ksm_clients', JSON.stringify(updatedClients));
+            } else if (role === 'proprietaire') {
+                const updatedProprietaires = proprietaires.map((propItem) => {
+                    if (propItem.id === activeActorId) {
+                        const likedList = (propItem as any).likedBienIds || [];
+                        const liked = likedList.includes(bienId);
+                        return {
+                            ...propItem,
+                            likedBienIds: liked ? likedList.filter((id: string) => id !== bienId) : [...likedList, bienId],
+                        };
+                    }
+                    return propItem;
+                });
+                setProprietaires(updatedProprietaires);
+                localStorage.setItem('ksm_proprietaires', JSON.stringify(updatedProprietaires));
+            } else if (role === 'admin') {
+                const likedList = (currentUser as any).likedBienIds || [];
+                const liked = likedList.includes(bienId);
+                const updatedUser = {
+                    ...currentUser,
+                    likedBienIds: liked ? likedList.filter((id: string) => id !== bienId) : [...likedList, bienId],
+                };
+                setCurrentUser(updatedUser);
+                localStorage.setItem('ksm_session', JSON.stringify(updatedUser));
+            }
+
             const updatedBiens = biens.map((b) => {
                 if (b.id === bienId) {
-                    const clItem = updatedClients.find(c => c.id === activeClientId);
-                    const liked = clItem?.likedBienIds.includes(bienId);
+                    const isNowLiked = !isLiked;
                     return {
                         ...b,
-                        likes: liked ? b.likes + 1 : Math.max(0, b.likes - 1),
+                        likes: isNowLiked ? b.likes + 1 : Math.max(0, b.likes - 1),
                     };
                 }
                 return b;
             });
             setBiens(updatedBiens);
+            localStorage.setItem('ksm_biens', JSON.stringify(updatedBiens));
         }
     };
 

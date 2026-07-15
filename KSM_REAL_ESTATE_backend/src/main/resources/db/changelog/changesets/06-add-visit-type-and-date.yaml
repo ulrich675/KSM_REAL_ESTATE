@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6
+      author: ulrich675
+      changes:
+        - addColumn:
+            tableName: visit_requests
+            columns:
+              - column:
+                  name: type
+                  type: varchar(50)
+                  defaultValue: 'PHYSICAL'
+              - column:
+                  name: visit_date
+                  type: timestamp
+                  constraints:
+                    nullable: true

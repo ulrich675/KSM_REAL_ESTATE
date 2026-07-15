@@ -77,8 +77,9 @@ public class PropertyController {
     }
 
     @GetMapping
-    public Flux<ApiResponse<PropertyResponse>> searchProperties(@RequestParam(required = false) String category,
-            @RequestParam(required = false) String city) {
+    public Flux<ApiResponse<PropertyResponse>> searchProperties(
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "city", required = false) String city) {
         // Simple specification builder (placeholder)
         com.ksm.realestate.domain.spec.PropertySpecification spec = new com.ksm.realestate.domain.spec.PropertySpecification();
         if (category != null)

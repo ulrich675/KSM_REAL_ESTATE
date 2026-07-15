@@ -128,6 +128,47 @@ public class KernelCorePaymentAdapterTest {
         }
 
         @Test
+        public void testCreateInvoice_OrganizationHeaderIsNotSentWhenEmpty() throws InterruptedException {
+                mockWebServer.enqueue(new MockResponse()
+                                .setResponseCode(200)
+                                .setBody("{\"status\":\"SUCCESS\",\"data\":{\"id\":\"inv-empty-org\",\"status\":\"DRAFT\",\"currency\":\"XAF\"}}")
+                                .addHeader("Content-Type", "application/json"));
+                mockWebServer.enqueue(new MockResponse()
+                                .setResponseCode(200)
+                                .setBody("{\"status\":\"SUCCESS\"}")
+                                .addHeader("Content-Type", "application/json"));
+
+                // Reset adapter with property empty
+                KernelCoreProperties properties = new KernelCoreProperties();
+                properties.setBaseUrl(mockWebServer.url("/").toString());
+                properties.setClientId("test-client");
+                properties.setApiKey("test-api-key");
+                properties.setTenantId("11111111-1111-1111-1111-111111111111");
+                properties.setOrganizationId(""); // empty
+                WebClient webClient = WebClient.builder()
+                                .baseUrl(properties.getBaseUrl())
+                                .defaultHeader("X-Client-Id", properties.getClientId())
+                                .defaultHeader("X-Api-Key", properties.getApiKey())
+                                .build();
+                adapter = new KernelCorePaymentAdapter(webClient, properties);
+
+                KernelInvoiceCommand cmd = KernelInvoiceCommand.builder()
+                                .customerThirdPartyId("customer-uuid-789")
+                                .currency("XAF")
+                                .unitPrice(100000.0)
+                                .quantity(1.0)
+                                .build();
+
+                StepVerifier.create(adapter.createInvoice(cmd))
+                                .expectNextMatches(r -> "inv-empty-org".equals(r.getInvoiceId()))
+                                .verifyComplete();
+
+                var recordedRequest = mockWebServer.takeRequest();
+                org.junit.jupiter.api.Assertions.assertNull(recordedRequest.getHeader("X-Organization-Id"));
+                assertEquals("11111111-1111-1111-1111-111111111111", recordedRequest.getHeader("X-Tenant-Id"));
+        }
+
+        @Test
         public void testCreateInvoice_ServiceNotSubscribed() {
                 mockWebServer.enqueue(new MockResponse()
                                 .setResponseCode(403)

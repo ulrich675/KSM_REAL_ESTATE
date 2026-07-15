@@ -32,6 +32,12 @@ public class VisitRequestEntity {
     @Column("status")
     private String status;
 
+    @Column("type")
+    private String type;
+
+    @Column("visit_date")
+    private Instant visitDate;
+
     @Column("updated_at")
     private Instant updatedAt;
 
@@ -81,5 +87,21 @@ public class VisitRequestEntity {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Instant getVisitDate() {
+        return visitDate;
+    }
+
+    public void setVisitDate(Instant visitDate) {
+        this.visitDate = visitDate;
     }
 }

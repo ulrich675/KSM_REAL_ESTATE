@@ -16,6 +16,8 @@ COPY public ./public
 COPY src ./src
 
 # Disable telemetry and build Next.js app in production standalone mode
+ARG BACKEND_URL=http://backend:8080
+ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 RUN npm run build

@@ -56,9 +56,11 @@ public class KernelCorePaymentAdapter implements KernelCorePaymentPort {
                 .flatMap(token -> {
                     // Build CreateInvoiceRequest body
                     Map<String, Object> body = new LinkedHashMap<>();
-                    body.put("organizationId", command.getOrganizationId() != null
-                            ? command.getOrganizationId()
-                            : properties.getOrganizationId());
+                    if (command.getOrganizationId() != null) {
+                        body.put("organizationId", command.getOrganizationId());
+                    } else if (properties.getOrganizationId() != null && !properties.getOrganizationId().isBlank()) {
+                        body.put("organizationId", properties.getOrganizationId());
+                    }
                     body.put("customerThirdPartyId", command.getCustomerThirdPartyId());
                     body.put("currency", command.getCurrency() != null ? command.getCurrency() : "XAF");
                     if (command.getOrderId() != null)
@@ -72,20 +74,23 @@ public class KernelCorePaymentAdapter implements KernelCorePaymentPort {
                     if (command.getInvoiceNumber() != null)
                         body.put("invoiceNumber", command.getInvoiceNumber());
 
-                    WebClient.RequestHeadersSpec<?> req = kernelCoreWebClient.post()
-                            .uri("/api/accounting/invoices")
-                            .header("X-Tenant-Id", properties.getTenantId())
-                            .header("X-Organization-Id", properties.getOrganizationId())
-                            .bodyValue(body);
+                    WebClient.RequestBodySpec requestSpec = kernelCoreWebClient.post()
+                            .uri("/api/accounting/invoices");
+
+                    requestSpec = (WebClient.RequestBodySpec) requestSpec.header("X-Tenant-Id",
+                            properties.getTenantId());
+
+                    if (properties.getOrganizationId() != null && !properties.getOrganizationId().isBlank()) {
+                        requestSpec = (WebClient.RequestBodySpec) requestSpec.header("X-Organization-Id",
+                                properties.getOrganizationId());
+                    }
 
                     if (token != null && !token.isEmpty()) {
-                        req = ((WebClient.RequestBodySpec) kernelCoreWebClient.post()
-                                .uri("/api/accounting/invoices")
-                                .header("X-Tenant-Id", properties.getTenantId())
-                                .header("X-Organization-Id", properties.getOrganizationId())
-                                .header("Authorization", "Bearer " + token))
-                                .bodyValue(body);
+                        requestSpec = (WebClient.RequestBodySpec) requestSpec.header("Authorization",
+                                "Bearer " + token);
                     }
+
+                    WebClient.RequestHeadersSpec<?> req = requestSpec.bodyValue(body);
 
                     return req.retrieve()
                             .onStatus(s -> s.isError(), r -> r.bodyToMono(KernelErrorResponse.class)
@@ -111,18 +116,21 @@ public class KernelCorePaymentAdapter implements KernelCorePaymentPort {
 
     /** POST /api/accounting/invoices/{invoiceId}/post */
     private Mono<Void> postInvoice(String invoiceId, String token) {
-        WebClient.RequestHeadersSpec<?> req = kernelCoreWebClient.post()
-                .uri("/api/accounting/invoices/{id}/post", invoiceId)
-                .header("X-Tenant-Id", properties.getTenantId())
-                .header("X-Organization-Id", properties.getOrganizationId());
+        WebClient.RequestBodySpec requestSpec = kernelCoreWebClient.post()
+                .uri("/api/accounting/invoices/{id}/post", invoiceId);
+
+        requestSpec = (WebClient.RequestBodySpec) requestSpec.header("X-Tenant-Id", properties.getTenantId());
+
+        if (properties.getOrganizationId() != null && !properties.getOrganizationId().isBlank()) {
+            requestSpec = (WebClient.RequestBodySpec) requestSpec.header("X-Organization-Id",
+                    properties.getOrganizationId());
+        }
 
         if (token != null && !token.isEmpty()) {
-            req = kernelCoreWebClient.post()
-                    .uri("/api/accounting/invoices/{id}/post", invoiceId)
-                    .header("X-Tenant-Id", properties.getTenantId())
-                    .header("X-Organization-Id", properties.getOrganizationId())
-                    .header("Authorization", "Bearer " + token);
+            requestSpec = (WebClient.RequestBodySpec) requestSpec.header("Authorization", "Bearer " + token);
         }
+
+        WebClient.RequestHeadersSpec<?> req = requestSpec;
 
         return req.retrieve()
                 .onStatus(s -> s.isError(), r -> r.bodyToMono(KernelErrorResponse.class)

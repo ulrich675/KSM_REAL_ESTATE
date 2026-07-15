@@ -34,5 +34,9 @@ public class VisitRequest {
     @NotNull
     private String status;
 
+    private String type;
+
+    private Instant visitDate;
+
     private Instant updatedAt;
 }

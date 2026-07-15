@@ -47,6 +47,8 @@ réussi côté kernel-core.
 `cashier-core` exige une session de caisse (DS-CA-01 à DS-CA-06), inadaptée à un paiement  
 web self-service. `billing-core` est utilisé via `POST /api/paiement`.
 
+> **Note relative au contexte d'organisation :** Dans ce déploiement, `billing-core` n'exige pas de contexte d'organisation, contrairement à la règle générale documentée pour les services scopés organisation du Kernel Core. L'en-tête `X-Organization-Id` n'est donc envoyé que si la variable d'environnement correspondante (`KERNEL_CORE_ORGANIZATION_ID`) est définie.
+
 > **Validation humaine requise :** Le schéma JSON exact du body attendu par `POST /api/paiement`  
 > est une **hypothèse** basée sur le modèle du domaine (clientId, montant, devise). À vérifier  
 > contre une instance kernel-core réelle avant mise en production.

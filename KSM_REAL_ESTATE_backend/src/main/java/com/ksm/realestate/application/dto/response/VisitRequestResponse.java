@@ -22,6 +22,12 @@ public class VisitRequestResponse {
     private Long propertyId;
     private Long userId;
     private Instant requestedAt;
+
     private String status;
+
+    private String type;
+
+    private Instant visitDate;
+
     private Instant updatedAt;
 }

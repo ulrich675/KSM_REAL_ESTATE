@@ -1,6 +1,7 @@
 spring:
   application:
     name: ksm-real-estate-backend
+  debug: true
 
   # Reactive PostgreSQL (R2DBC) - used by the application at runtime
   r2dbc:
@@ -55,7 +56,7 @@ kernel-core:
   client-id: ${KERNEL_CORE_CLIENT_ID}
   api-key: ${KERNEL_CORE_API_KEY}
   tenant-id: ${KERNEL_CORE_TENANT_ID}
-  organization-id: ${KERNEL_CORE_ORGANIZATION_ID:22222222-2222-2222-2222-222222222222}
+  organization-id: ${KERNEL_CORE_ORGANIZATION_ID:}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
@@ -126,5 +127,8 @@ security:
     secret: ${JWT_SECRET}
 logging:
   level:
-    root: WARN
-    com.ksm.realestate: INFO
+    root: INFO
+    com.ksm.realestate: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+    org.mariadb.r2dbc: DEBUG
+    io.r2dbc: DEBUG

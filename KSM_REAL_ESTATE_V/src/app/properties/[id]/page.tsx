@@ -8,7 +8,7 @@ import { calculerPrixVisiteVirtuelle } from '../../../utils/pricing';
 import DateValidator from '../../../components/DateValidator';
 import {
   MapPin, BedDouble, Bath, Maximize2, Heart, Star,
-  ShoppingCart, Eye, Calendar, Send, CreditCard, Banknote, Download, ChevronLeft, ChevronRight
+  ShoppingCart, Eye, Calendar, Send, CreditCard, Banknote, Download, ChevronLeft, ChevronRight, User, Mail, Phone
 } from 'lucide-react';
 import { printHtmlReceipt } from '../../../utils/fileUtils';
 
@@ -40,6 +40,8 @@ export default function PropertyDetailsPage() {
   const [showPaymentModal, setShowPaymentModal] = useState<{ type: 'Achat' | 'VisiteVirtuelle'; prix: number } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Virement'>('Cash');
   const [receiptGenerated, setReceiptGenerated] = useState<{ html: string } | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Combine images array for carousel
   const allImages = React.useMemo(() => {
@@ -63,7 +65,19 @@ export default function PropertyDetailsPage() {
   const totalAchatsClient = achats.filter(a => a.clientId === currentUser?.id && !a.typeVisite && a.statusVisite !== 'Refusée').length;
   const prixVisiteVirtuelle = calculerPrixVisiteVirtuelle(bien.likes, totalAchatsClient);
   const currentClient = clients.find(c => c.id === currentUser?.id);
-  const isLiked = currentClient?.likedBienIds.includes(bien.id) || false;
+  const isLiked = React.useMemo(() => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'client') {
+      const cl = clients.find(c => c.id === currentUser.id);
+      return cl?.likedBienIds.includes(bien.id) || false;
+    } else if (currentUser.role === 'proprietaire') {
+      const prop = proprietaires.find(p => p.id === currentUser.id);
+      return (prop as any)?.likedBienIds?.includes(bien.id) || false;
+    } else if (currentUser.role === 'admin') {
+      return (currentUser as any).likedBienIds?.includes(bien.id) || false;
+    }
+    return false;
+  }, [currentUser, clients, proprietaires, bien.id]);
   const vendu = bien.etat === 'Acheté';
 
   // Carousel Nav
@@ -208,25 +222,50 @@ export default function PropertyDetailsPage() {
 
   const processPayment = async () => {
     if (!showPaymentModal) return;
+    setPaymentLoading(true);
+    setPaymentError(null);
     const { type, prix } = showPaymentModal;
 
-    let result;
-    if (type === 'Achat') {
-      result = await acheterBien(currentUser!.id, bien.id);
-    } else {
-      result = await acheterVisiteVirtuelle(currentUser!.id, bien.id);
-    }
+    try {
+      let result;
+      if (type === 'Achat') {
+        result = await acheterBien(currentUser!.id, bien.id);
+      } else {
+        result = await acheterVisiteVirtuelle(currentUser!.id, bien.id);
+      }
 
-    if (result) {
-      const htmlInfo = generateReceiptHtml(type, prix, bien.nom, paymentMethod);
-      setReceiptGenerated({ html: htmlInfo });
-      setMessage({ text: `✅ Paiement validé (\${paymentMethod}) !`, ok: true });
+      if (result) {
+        const htmlInfo = generateReceiptHtml(type, prix, bien.nom, paymentMethod);
+        setReceiptGenerated({ html: htmlInfo });
+        setMessage({ text: `✅ Paiement validé (${paymentMethod}) !`, ok: true });
+      } else {
+        setPaymentError('Le paiement a échoué. Veuillez réessayer.');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('401') || msg.includes('403')) {
+        setPaymentError('Session expirée. Veuillez vous reconnecter avant de payer.');
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        setPaymentError('Erreur réseau. Vérifiez votre connexion et réessayez.');
+      } else {
+        setPaymentError(`Erreur lors du paiement : ${msg}`);
+      }
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
   const handleVisiteVirtuelleDirect = async () => {
-    await acheterVisiteVirtuelle(currentUser!.id, bien.id);
-    setMessage({ text: '🎉 Visite virtuelle GRATUITE activée !', ok: true });
+    try {
+      const result = await acheterVisiteVirtuelle(currentUser!.id, bien.id);
+      if (result) {
+        setMessage({ text: '🎉 Visite virtuelle GRATUITE activée !', ok: true });
+      } else {
+        setMessage({ text: 'La visite virtuelle n\'a pas pu être activée. Réessayez.', ok: false });
+      }
+    } catch (err: unknown) {
+      setMessage({ text: 'Erreur réseau lors de l\'activation de la visite.', ok: false });
+    }
   };
 
   const handleComment = () => requireAuth(async () => {
@@ -459,6 +498,52 @@ export default function PropertyDetailsPage() {
             </div>
           )}
 
+          {/* Contact Propriétaire */}
+          {(() => {
+            const prop = proprietaires.find(p => p.id === bien.proprietaireId);
+            if (!prop) return null;
+            return (
+              <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  📞 Contact Propriétaire
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'rgba(249,115,22,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid rgba(249,115,22,0.2)'
+                  }}>
+                    <User size={16} style={{ color: 'var(--accent-orange)' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-white)' }}>{prop.nom}</p>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>ID: {prop.id}</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                  {prop.email && (
+                    <a href={`mailto:${prop.email}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
+                      <Mail size={13} style={{ color: 'var(--accent-orange)' }} />
+                      <span style={{ fontSize: '13px' }}>{prop.email}</span>
+                    </a>
+                  )}
+                  {prop.numero && (
+                    <a href={`tel:${prop.numero}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
+                      <Phone size={13} style={{ color: 'var(--accent-orange)' }} />
+                      <span style={{ fontSize: '13px' }}>{prop.numero}</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Feedback message */}
           {message && (
             <div style={{
@@ -510,8 +595,13 @@ export default function PropertyDetailsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <button onClick={() => setShowPaymentModal(null)} style={{ flex: 1, padding: 12, background: 'rgba(255,255,255,0.05)', color: 'var(--text-gray)', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={processPayment} style={{ flex: 1, padding: 12, background: 'var(--accent-orange)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Valider</button>
+                  {paymentError && (
+                    <div style={{ gridColumn: '1 / -1', padding: '10px 14px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, color: '#ef4444', fontSize: 13, fontWeight: 600 }}>
+                      ⚠️ {paymentError}
+                    </div>
+                  )}
+                  <button onClick={() => { setShowPaymentModal(null); setPaymentError(null); }} style={{ flex: 1, padding: 12, background: 'rgba(255,255,255,0.05)', color: 'var(--text-gray)', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={processPayment} disabled={paymentLoading} style={{ flex: 1, padding: 12, background: paymentLoading ? '#555' : 'var(--accent-orange)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: paymentLoading ? 'not-allowed' : 'pointer', opacity: paymentLoading ? 0.7 : 1 }}>{paymentLoading ? '⏳ Traitement...' : 'Valider'}</button>
                 </div>
               </>
             ) : (
