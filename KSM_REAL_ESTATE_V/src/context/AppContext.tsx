@@ -550,9 +550,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             statusVisite: 'En attente',
         };
 
-        const saved = await apiService.saveAchat(newAchat);
-        setAchats([saved, ...achats]);
-        return saved;
+        try {
+            const saved = await apiService.saveAchat(newAchat);
+            const updatedAchats = [saved, ...achats];
+            setAchats(updatedAchats);
+            localStorage.setItem('ksm_achats', JSON.stringify(updatedAchats));
+            return saved;
+        } catch (e) {
+            console.warn('[KSM] demanderVisitePhysique backend failed, saving locally:', e);
+            // Fallback local — la visite reste visible même sans backend
+            const updatedAchats = [newAchat, ...achats];
+            setAchats(updatedAchats);
+            localStorage.setItem('ksm_achats', JSON.stringify(updatedAchats));
+            return newAchat;
+        }
     };
 
     const ajouterBien = async (payload: Omit<Bien, 'likes' | 'commentaires' | 'etat'>): Promise<Bien> => {
