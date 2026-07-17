@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import java.time.Instant;
 
 /**
@@ -32,6 +33,36 @@ public class VisitRequestController {
                 .map(response -> ApiResponse.<VisitRequestResponse>builder()
                         .status("SUCCESS")
                         .message("Visit request created successfully")
+                        .data(response)
+                        .timestamp(Instant.now())
+                        .errors(null)
+                        .build());
+    }
+
+    @GetMapping
+    public Flux<VisitRequestResponse> getAllVisits() {
+        return visitRequestService.findAll().map(visitRequestMapper::toResponse);
+    }
+
+    @GetMapping("/property/{propertyId}")
+    public Flux<VisitRequestResponse> getByProperty(@PathVariable Long propertyId) {
+        return visitRequestService.findByPropertyId(propertyId).map(visitRequestMapper::toResponse);
+    }
+
+    @GetMapping("/user/{userId}")
+    public Flux<VisitRequestResponse> getByUser(@PathVariable Long userId) {
+        return visitRequestService.findByUserId(userId).map(visitRequestMapper::toResponse);
+    }
+
+    @PatchMapping("/{id}/status")
+    public Mono<ApiResponse<VisitRequestResponse>> updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        return visitRequestService.updateStatus(id, status)
+                .map(visitRequestMapper::toResponse)
+                .map(response -> ApiResponse.<VisitRequestResponse>builder()
+                        .status("SUCCESS")
+                        .message("Visit status updated")
                         .data(response)
                         .timestamp(Instant.now())
                         .errors(null)

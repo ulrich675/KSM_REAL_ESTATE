@@ -1,7 +1,7 @@
 # KSM Real Estate — Documentation Projet
 
 > Plateforme immobilière full-stack construite sur une architecture hexagonale (Ports & Adapters).
-> **Backend** : Spring Boot 3.2 + R2DBC (WebFlux) · **Frontend** : Next.js 14
+> **Backend** : Spring Boot 3.2 + R2DBC (WebFlux) · **Frontend** : Next.js 16.2.10
 
 ---
 

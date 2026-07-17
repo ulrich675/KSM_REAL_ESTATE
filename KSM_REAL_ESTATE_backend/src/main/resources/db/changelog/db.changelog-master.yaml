@@ -10,4 +10,10 @@ databaseChangeLog:
   - include:
       file: db/changelog/changesets/05-add-user-active-property-status.yaml
   - include:
-      file: db/changelog/changesets/06-add-visit-type-and-date.yaml
+      file: classpath:/db/changelog/changesets/06-add-visit-type-and-date.yaml
+  - include:
+      file: classpath:/db/changelog/changesets/07-add-virtual-tour-images-table.yaml
+  - include:
+      file: classpath:/db/changelog/changesets/08-add-type-to-payments.yaml
+  - include:
+      file: classpath:/db/changelog/changesets/09-add-proprietor-requests.yaml

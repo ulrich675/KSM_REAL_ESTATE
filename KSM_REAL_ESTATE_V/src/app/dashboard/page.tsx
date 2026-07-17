@@ -9,8 +9,9 @@ import { apiService } from '../../services/api';
 import Link from 'next/link';
 import {
     Home, Plus, Edit2, Trash2, Check, X, Users, ShieldAlert,
-    Package, Eye, Video, MapPin, Calendar, User, ChevronDown, ChevronUp, Image as ImageIcon
+    Package, Eye, Video, MapPin, Calendar, User, ChevronDown, ChevronUp, Image as ImageIcon, Camera
 } from 'lucide-react';
+import VirtualTourUploadModal from '../../components/VirtualTourUploadModal';
 
 /**
  * Tente d'uploader un fichier image via le backend (file-core).
@@ -37,6 +38,7 @@ interface ClientDashboardContentProps {
 }
 export function ClientDashboardContent({ showDevenirProp = false }: ClientDashboardContentProps) {
     const { currentUser, achats, biens } = useApp();
+    const [isProprietaireModalOpen, setProprietaireModalOpen] = useState(false);
     const mesAchats = achats.filter(a => a.clientId === currentUser?.id && !a.typeVisite);
     const mesVisitesVirt = achats.filter(a => a.clientId === currentUser?.id && a.typeVisite === 'virtuelle');
     const mesVisitesPhys = achats.filter(a => a.clientId === currentUser?.id && a.typeVisite === 'physique');
@@ -120,11 +122,25 @@ export function ClientDashboardContent({ showDevenirProp = false }: ClientDashbo
                     })}
             </Section>
 
-            {/* Devenir Propriétaire - Formulaire complet si requis */}
+            {/* Devenir Propriétaire - Bouton Modal */}
             {showDevenirProp && currentUser?.role === 'client' && (
-                <Section title="Devenir Propriétaire">
-                    <DevenirPropForm />
-                </Section>
+                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
+                    <button onClick={() => setProprietaireModalOpen(true)} className="glass-card" style={{ padding: '16px 36px', fontSize: '16px', background: 'var(--accent-orange)', color: 'white', border: 'none', borderRadius: '30px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(249, 115, 22, 0.4)', fontWeight: 600 }}>
+                        🚀 Poser ma candidature PRO
+                    </button>
+                </div>
+            )}
+
+            {isProprietaireModalOpen && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div className="glass-card" style={{ background: '#1c1c1e', padding: '32px', maxWidth: '600px', width: '90%', borderRadius: '16px', position: 'relative' }}>
+                        <button onClick={() => setProprietaireModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'gray' }}>
+                            <X size={24} />
+                        </button>
+                        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Devenir Propriétaire KSM</h2>
+                        <DevenirPropForm onClose={() => setProprietaireModalOpen(false)} />
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -133,7 +149,7 @@ export function ClientDashboardContent({ showDevenirProp = false }: ClientDashbo
 // ─────────────────────────────────────────────
 // FORMULAIRE DE CANDIDATURE "DEVENIR PROPRIÉTAIRE"
 // ─────────────────────────────────────────────
-function DevenirPropForm() {
+function DevenirPropForm({ onClose }: { onClose?: () => void }) {
     const { currentUser, pendingProprietorRequests, demanderDevenirProprietaire } = useApp();
     const [form, setForm] = useState({ numero: '', adresse: '', motivation: '' });
     const [submitted, setSubmitted] = useState(false);
@@ -159,11 +175,30 @@ function DevenirPropForm() {
         );
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.numero || !form.adresse || !form.motivation.trim()) return;
-        demanderDevenirProprietaire(currentUser.id);
-        setSubmitted(true);
+
+        try {
+            const userId = parseInt(String(currentUser.id).replace(/\D/g, '')) || 1;
+            const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+            await fetch(`${API_BASE_URL}/users/${userId}/request-proprietor`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('ksm_token')}`
+                },
+                body: JSON.stringify({
+                    phoneNumber: form.numero,
+                    physicalAddress: form.adresse,
+                    motivation: form.motivation
+                })
+            });
+            demanderDevenirProprietaire(currentUser.id);
+            setSubmitted(true);
+        } catch (err) {
+            console.error("Erreur lors de la demande professionnel:", err);
+        }
     };
 
     const inputStyle = {
@@ -231,6 +266,7 @@ function ProprietaireDashboard() {
     const [editingBien, setEditingBien] = useState<Bien | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [activeSection, setActiveSection] = useState<'client' | 'biens' | 'visites' | 'vendus'>('client');
+    const [vtUploadBien, setVtUploadBien] = useState<{ id: string, numId: number } | null>(null);
 
     // Form state
     const [form, setForm] = useState({
@@ -360,6 +396,9 @@ function ProprietaireDashboard() {
                                     <Link href={`/properties/${b.id}`} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-gray)', padding: '8px', borderRadius: 8, display: 'flex' }}>
                                         <Eye size={16} />
                                     </Link>
+                                    <button onClick={() => setVtUploadBien({ id: b.id, numId: parseInt(b.id.replace('bien-', '')) || Date.now() })} style={{ background: 'rgba(14,165,233,0.15)', border: 'none', color: '#0ea5e9', padding: '8px', borderRadius: 8, cursor: 'pointer' }} title="Visite Virtuelle 360°">
+                                        <Camera size={16} />
+                                    </button>
                                     <button onClick={() => startEdit(b)} style={{ background: 'rgba(99,102,241,0.15)', border: 'none', color: '#818cf8', padding: '8px', borderRadius: 8, cursor: 'pointer' }}>
                                         <Edit2 size={16} />
                                     </button>
@@ -369,6 +408,17 @@ function ProprietaireDashboard() {
                                 </div>
                             </div>
                         ))}
+
+                    {vtUploadBien && (
+                        <VirtualTourUploadModal
+                            bienId={vtUploadBien.id}
+                            numericId={vtUploadBien.numId}
+                            onClose={() => setVtUploadBien(null)}
+                            onSuccess={() => {
+                                alert('Visite virtuelle 360° enregistrée avec succès !');
+                            }}
+                        />
+                    )}
                 </div>
             )}
 

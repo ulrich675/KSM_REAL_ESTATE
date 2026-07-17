@@ -6,6 +6,7 @@
  */
 package com.ksm.realestate.infrastructure.adapter.in;
 
+import com.ksm.realestate.application.dto.request.ProprietorRequestCreateRequest;
 import com.ksm.realestate.application.dto.response.UserResponse;
 import com.ksm.realestate.application.service.UserService;
 import com.ksm.realestate.domain.model.Role;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -103,8 +105,11 @@ public class UserController {
          * @return the updated user profile
          */
         @PostMapping("/{id}/request-proprietor")
-        public Mono<ApiResponse<UserResponse>> requestProprietor(@PathVariable("id") Long id) {
-                return userService.requestProprietorRole(id)
+        public Mono<ApiResponse<UserResponse>> requestProprietor(@PathVariable("id") Long id,
+                        @RequestBody ProprietorRequestCreateRequest request) {
+                return userService
+                                .submitProprietorRequest(id, request.getPhoneNumber(), request.getPhysicalAddress(),
+                                                request.getMotivation())
                                 .map(userMapper::toResponse)
                                 .map(resp -> ApiResponse.<UserResponse>builder()
                                                 .status("SUCCESS")
@@ -122,10 +127,10 @@ public class UserController {
          * @param approved true to approve, false to reject
          * @return the updated user profile
          */
-        @PostMapping("/{id}/handle-proprietor-request")
-        public Mono<ApiResponse<UserResponse>> handleProprietorRequest(@PathVariable("id") Long id,
+        @PostMapping("/requests/{requestId}/handle")
+        public Mono<ApiResponse<UserResponse>> handleProprietorRequest(@PathVariable("requestId") Long requestId,
                         @RequestParam boolean approved) {
-                return userService.handleProprietorRequest(id, approved)
+                return userService.handleProprietorRequest(requestId, approved)
                                 .map(userMapper::toResponse)
                                 .map(resp -> ApiResponse.<UserResponse>builder()
                                                 .status("SUCCESS")

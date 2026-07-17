@@ -42,4 +42,8 @@ public class Payment {
     private String status;
 
     private String receiptPdfUrl;
+
+    @NotNull
+    @Builder.Default
+    private String type = "ACHAT";
 }

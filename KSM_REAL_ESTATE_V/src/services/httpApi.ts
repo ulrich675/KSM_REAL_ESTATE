@@ -38,64 +38,99 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     if (res.status === 204) return undefined as T;
     const json = await res.json();
     // Backend enveloppe tout sous { status, data, … }
-    return (json.data !== undefined ? json.data : json) as T;
+    if (Array.isArray(json)) {
+        return json.map(item => (item && item.data !== undefined ? item.data : item)) as unknown as T;
+    }
+    return (json && json.data !== undefined ? json.data : json) as T;
 }
 
 // ─── response shapes (subset — backend fields that we actually use) ────────────
 
 interface BackendProperty {
-    propertyId: number;
+    propertyId?: number;
+    property_id?: number;
+
     title: string;
     description: string;
-    priceAmount: number;
-    streetName: string;
-    cityName: string;
-    category: string;          // VILLA | APARTMENT | STUDIO
-    ownerId: number;
-    status?: string;            // AVAILABLE | SOLD
+
+    priceAmount?: number;
+    price_amount?: number;
+
+    streetName?: string;
+    street_name?: string;
+
+    cityName?: string;
+    city_name?: string;
+
+    category: string;
+
+    ownerId?: number;
+    owner_id?: number;
+
+    status?: string;
     latitude?: number;
     longitude?: number;
     superficie?: number;
     chambres?: number;
+
     sallesDeBain?: number;
+    salles_de_bain?: number;
+
     imageMain?: string;
+    image_main?: string;
+
     imagesPieces?: Array<{ label: string; url: string }>;
+    images_pieces_json?: string;
+
     likes?: number;
     commentaires?: BackendComment[];
 }
 
 interface BackendComment {
     commentId?: number;
+    comment_id?: number;
     id?: string;
     auteur?: string;
     authorName?: string;
+    author_name?: string;
     note?: number;
     rating?: number;
     texte?: string;
     content?: string;
     date?: string;
     createdAt?: string;
+    created_at?: string;
     userId?: number;
+    user_id?: number;
 }
 
 interface BackendUser {
-    userId: number;
-    firstName: string;
-    lastName: string;
+    userId?: number;
+    user_id?: number;
+    firstName?: string;
+    first_name?: string;
+    lastName?: string;
+    last_name?: string;
     email: string;
     phoneNumber?: string;
-    role?: string;   // CLIENT | PROPRIETOR | ADMIN
+    phone_number?: string;
+    role?: string;
     active?: boolean;
 }
 
 interface BackendVisitRequest {
-    requestId: number;
-    propertyId: number;
-    userId: number;
-    requestedAt: string;
-    status: string;     // PENDING | CONFIRMED | REJECTED
+    requestId?: number;
+    request_id?: number;
+    propertyId?: number;
+    property_id?: number;
+    userId?: number;
+    user_id?: number;
+    requestedAt?: string;
+    requested_at?: string;
+    status: string;
     visitDate?: string;
-    type?: string;      // PHYSICAL | VIRTUAL
+    visit_date?: string;
+    type?: string;
     amount?: number;
 }
 
@@ -108,50 +143,69 @@ function mapCategory(cat: string): 'Villa' | 'Appartement' | 'Studio' {
     return 'Appartement';
 }
 
+// Standardise mapping du statut
 function mapStatus(status: string): 'Disponible' | 'Acheté' {
     return status === 'SOLD' ? 'Acheté' : 'Disponible';
 }
 
 function mapComment(c: BackendComment): Commentaire {
     return {
-        id: String(c.commentId ?? c.id ?? Date.now()),
-        auteur: c.auteur ?? c.authorName ?? 'Anonyme',
+        id: String(c.comment_id ?? c.commentId ?? c.id ?? Date.now()),
+        auteur: c.auteur ?? c.author_name ?? c.authorName ?? 'Anonyme',
         note: c.note ?? c.rating ?? 3,
         texte: c.texte ?? c.content ?? '',
-        date: (c.date ?? c.createdAt ?? new Date().toISOString()).split('T')[0],
+        date: (c.date ?? c.created_at ?? c.createdAt ?? new Date().toISOString()).split('T')[0],
     };
 }
 
 function mapProperty(p: BackendProperty): Bien {
+    let imagesPieces = p.imagesPieces || [];
+    if (p.images_pieces_json) {
+        try {
+            imagesPieces = JSON.parse(p.images_pieces_json);
+        } catch (_) { }
+    }
+
     return {
-        id: String(p.propertyId),
+        id: String(p.property_id ?? p.propertyId),
         nom: p.title,
         categorie: mapCategory(p.category),
         etat: mapStatus(p.status ?? 'AVAILABLE'),
         description: p.description,
-        prix: Number(p.priceAmount),
-        localisation: [p.streetName, p.cityName].filter(Boolean).join(', '),
+        prix: Number(p.price_amount ?? p.priceAmount),
+        localisation: [p.street_name ?? p.streetName, p.city_name ?? p.cityName].filter(Boolean).join(', '),
         latitude: p.latitude ?? 4.05,
         longitude: p.longitude ?? 9.77,
-        proprietaireId: String(p.ownerId),
-        imageMain: p.imageMain ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-        imagesPieces: p.imagesPieces ?? [],
+        proprietaireId: String(p.owner_id ?? p.ownerId),
+        imageMain: p.image_main ?? p.imageMain ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        imagesPieces: imagesPieces ?? [],
         likes: p.likes ?? 0,
         superficie: p.superficie ?? 0,
         chambres: p.chambres ?? 0,
-        sallesDeBain: p.sallesDeBain ?? 0,
+        sallesDeBain: p.salles_de_bain ?? p.sallesDeBain ?? 0,
         commentaires: (p.commentaires ?? []).map(mapComment),
     };
 }
 
 function mapUser(u: BackendUser): Client {
     return {
-        id: String(u.userId),
-        nom: `${u.firstName} ${u.lastName}`.trim(),
-        numero: u.phoneNumber ?? '',
+        id: String(u.user_id ?? u.userId),
+        nom: `${u.first_name ?? u.firstName ?? ''} ${u.last_name ?? u.lastName ?? ''}`.trim(),
+        numero: u.phone_number ?? u.phoneNumber ?? '',
         adresse: '',
         likedBienIds: [],
-        compteActif: u.active !== false, // default true unless explicitly false
+        compteActif: u.active !== false,
+        email: u.email,
+    };
+}
+
+function mapUserProprietaire(u: BackendUser): Proprietaire {
+    return {
+        id: String(u.user_id ?? u.userId),
+        nom: `${u.first_name ?? u.firstName ?? ''} ${u.last_name ?? u.lastName ?? ''}`.trim(),
+        numero: u.phone_number ?? u.phoneNumber ?? '',
+        adresse: '',
+        compteActif: u.active !== false,
         email: u.email,
     };
 }
@@ -168,13 +222,13 @@ function mapVisitToAchat(v: BackendVisitRequest): Achat {
     };
 
     return {
-        id: String(v.requestId),
-        clientId: String(v.userId),
-        bienId: String(v.propertyId),
-        date: (v.requestedAt ?? new Date().toISOString()).split('T')[0],
+        id: String(v.request_id ?? v.requestId),
+        clientId: String(v.user_id ?? v.userId),
+        bienId: String(v.property_id ?? v.propertyId),
+        date: (v.requested_at ?? v.requestedAt ?? new Date().toISOString()).split('T')[0],
         montant: v.amount ?? 0,
         typeVisite,
-        dateVisite: v.visitDate,
+        dateVisite: v.visit_date ?? v.visitDate,
         statusVisite: statusMap[v.status ?? 'PENDING'] ?? 'En attente',
     };
 }
@@ -183,7 +237,22 @@ function mapVisitToAchat(v: BackendVisitRequest): Achat {
 function getLocalFallback<T>(key: string, defaultValue: T): T {
     if (typeof window === 'undefined') return defaultValue;
     const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : defaultValue;
+    if (!value) return defaultValue;
+    try {
+        const parsed = JSON.parse(value);
+        if (key === 'ksm_biens' && Array.isArray(parsed)) {
+            // Si le cache contient des biens invalides (NaN ou undefined de la session précédente), on le purge
+            const hasInvalid = parsed.some(b => !b || b.id === 'undefined' || isNaN(Number(b.prix)));
+            if (hasInvalid) {
+                console.warn('[KSM] LocalStorage cache for ksm_biens is corrupted. Clearing it.');
+                localStorage.removeItem(key);
+                return defaultValue;
+            }
+        }
+        return parsed;
+    } catch (_) {
+        return defaultValue;
+    }
 }
 
 // ─── HTTP Adapter ─────────────────────────────────────────────────────────────
@@ -245,16 +314,7 @@ export class HttpApiAdapter implements KsmApiService {
     async getProprietaires(): Promise<Proprietaire[]> {
         try {
             const list = await apiFetch<BackendUser[]>('/users?role=PROPRIETOR');
-            const mapped = Array.isArray(list)
-                ? list.map((u) => ({
-                    id: String(u.userId),
-                    nom: `${u.firstName} ${u.lastName}`.trim(),
-                    numero: u.phoneNumber ?? '',
-                    adresse: '',
-                    compteActif: u.active !== false,
-                    email: u.email,
-                }))
-                : [];
+            const mapped = Array.isArray(list) ? list.map(mapUserProprietaire) : [];
             if (mapped.length === 0) {
                 return getLocalFallback<Proprietaire[]>('ksm_proprietaires', []);
             }
@@ -330,8 +390,8 @@ export class HttpApiAdapter implements KsmApiService {
         };
 
         const payload = {
-            propertyId: Number(achat.bienId),
-            userId: Number(achat.clientId),
+            propertyId: parseInt(String(achat.bienId).replace(/\D/g, '')) || 1,
+            userId: parseInt(String(achat.clientId).replace(/\D/g, '')) || 1,
             type: typeMap[achat.typeVisite ?? 'physique'] ?? 'PHYSICAL',
             visitDate: achat.dateVisite ?? null,
         };
@@ -359,10 +419,15 @@ export class HttpApiAdapter implements KsmApiService {
 
     // --- Services supplémentaires pour kernel-core ---
 
-    async processPayment(paymentReq: { userId: number; propertyId: number; amount: number; currency: string }): Promise<any> {
+    async processPayment(paymentReq: { userId: number | string; propertyId: number | string; amount: number; currency: string }): Promise<any> {
+        const payload = {
+            ...paymentReq,
+            userId: parseInt(String(paymentReq.userId).replace(/\D/g, '')) || 1,
+            propertyId: parseInt(String(paymentReq.propertyId).replace(/\D/g, '')) || 1,
+        };
         return apiFetch<any>('/payments', {
             method: 'POST',
-            body: JSON.stringify(paymentReq),
+            body: JSON.stringify(payload),
         });
     }
 
@@ -378,8 +443,8 @@ export class HttpApiAdapter implements KsmApiService {
 
     async addComment(comment: { propertyId: number; userId: number; authorName: string; rating: number; content: string }): Promise<Commentaire> {
         const payload = {
-            propertyId: comment.propertyId,
-            userId: comment.userId,
+            propertyId: parseInt(String(comment.propertyId).replace(/\D/g, '')) || 1,
+            userId: parseInt(String(comment.userId).replace(/\D/g, '')) || 1,
             content: comment.content,
             rating: comment.rating,
         };
@@ -391,7 +456,9 @@ export class HttpApiAdapter implements KsmApiService {
     }
 
     async likeProperty(propertyId: string, kernelActorId: string, isLike: boolean): Promise<void> {
-        await apiFetch<void>(`/comments/property/${propertyId}/like?kernelActorId=${kernelActorId}&isLike=${isLike}`, {
+        const pId = parseInt(String(propertyId).replace(/\D/g, '')) || 1;
+        const uId = parseInt(String(kernelActorId).replace(/\D/g, '')) || 1;
+        await apiFetch<void>(`/comments/property/${pId}/like?kernelActorId=${uId}&isLike=${isLike}`, {
             method: 'POST',
         });
     }
@@ -460,11 +527,36 @@ export interface LoginResult {
     mfaToken?: string;
 }
 
+function mapLoginResult(r: any): LoginResult {
+    const user = r.user ? {
+        userId: r.user.user_id ?? r.user.userId,
+        firstName: r.user.first_name ?? r.user.firstName ?? '',
+        lastName: r.user.last_name ?? r.user.lastName ?? '',
+        email: r.user.email,
+        role: r.user.role,
+    } : {
+        userId: 0,
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: '',
+    };
+
+    return {
+        token: r.token,
+        expiresInSeconds: r.expires_in_seconds ?? r.expiresInSeconds ?? 0,
+        user,
+        nextStep: r.next_step ?? r.nextStep,
+        mfaToken: r.mfa_token ?? r.mfaToken,
+    };
+}
+
 export async function loginApi(email: string, password: string): Promise<LoginResult> {
-    return apiFetch<LoginResult>('/auth/login', {
+    const res = await apiFetch<any>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
     });
+    return mapLoginResult(res);
 }
 
 export async function registerApi(data: {
@@ -475,8 +567,9 @@ export async function registerApi(data: {
     phoneNumber: string;
     password: string;
 }): Promise<LoginResult> {
-    return apiFetch<LoginResult>('/auth/register', {
+    const res = await apiFetch<any>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
     });
+    return mapLoginResult(res);
 }

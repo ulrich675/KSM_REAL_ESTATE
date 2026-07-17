@@ -11,6 +11,8 @@ import {
   ShoppingCart, Eye, Calendar, Send, CreditCard, Banknote, Download, ChevronLeft, ChevronRight, User, Mail, Phone
 } from 'lucide-react';
 import { printHtmlReceipt } from '../../../utils/fileUtils';
+import { VirtualTourService, VirtualTourImage } from '../../../services/virtualTourService';
+import VirtualVisitViewer from '../../../components/VirtualVisitViewer';
 
 // Dynamic import to avoid SSR crash of Leaflet (window is not defined)
 const PropertyMap = dynamic(() => import('../../../components/PropertyMap'), { ssr: false });
@@ -42,6 +44,45 @@ export default function PropertyDetailsPage() {
   const [receiptGenerated, setReceiptGenerated] = useState<{ html: string } | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Virtual Tour State
+  const [virtualImages, setVirtualImages] = useState<VirtualTourImage[] | null>(null);
+  const [loadingVt, setLoadingVt] = useState(false);
+
+  // Owner Summary State
+  const [ownerSummary, setOwnerSummary] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (bien) {
+      const numId = parseInt(bien.id.replace('bien-', '')) || 1;
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+      fetch(`${API_BASE_URL}/properties/${numId}/owner`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'SUCCESS' && data.data) {
+            setOwnerSummary(data.data);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [bien?.id]);
+
+  React.useEffect(() => {
+    if (currentUser && bien) {
+      setLoadingVt(true);
+      const propertyId = parseInt(bien.id.replace('bien-', '')) || 1;
+      VirtualTourService.getVirtualTour(propertyId)
+        .then(imgs => {
+          setVirtualImages(imgs);
+          setLoadingVt(false);
+        })
+        .catch(() => {
+          // Normal si non acheté
+          setVirtualImages(null);
+          setLoadingVt(false);
+        });
+    }
+  }, [currentUser, bien?.id]);
 
   // Combine images array for carousel
   const allImages = React.useMemo(() => {
@@ -259,7 +300,9 @@ export default function PropertyDetailsPage() {
     try {
       const result = await acheterVisiteVirtuelle(currentUser!.id, bien.id);
       if (result) {
-        setMessage({ text: '🎉 Visite virtuelle GRATUITE activée !', ok: true });
+        setMessage({ text: '🎉 Visite virtuelle GRATUITE activée ! Rechargez la page pour la voir.', ok: true });
+        const numId = parseInt(bien.id.replace('bien-', '')) || 1;
+        VirtualTourService.getVirtualTour(numId).then(setVirtualImages).catch(() => { });
       } else {
         setMessage({ text: 'La visite virtuelle n\'a pas pu être activée. Réessayez.', ok: false });
       }
@@ -329,13 +372,38 @@ export default function PropertyDetailsPage() {
                 <span>{bien.localisation}</span>
               </div>
             </div>
-            <button
-              onClick={handleLike}
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
-            >
-              <Heart size={28} fill={isLiked ? 'var(--accent-orange)' : 'transparent'} color={isLiked ? 'var(--accent-orange)' : 'var(--text-gray)'} />
-              <span style={{ fontSize: '13px', color: isLiked ? 'var(--accent-orange)' : 'var(--text-gray)', fontWeight: 600 }}>{bien.likes}</span>
-            </button>
+
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <button
+                onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Découvrez ce bien KSM : ' + bien.nom + ' ' + window.location.href)}`, '_blank')}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+                title="Partager sur WhatsApp"
+              >
+                <div style={{ background: '#25D366', padding: '6px', borderRadius: '50%' }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 .002 5.385.002 12.031c0 2.12.553 4.195 1.602 6.01L0 24l6.115-1.597c1.748.974 3.731 1.488 5.767 1.488 6.643 0 12.028-5.386 12.028-12.03 0-6.646-5.385-12.031-12.031-12.031zm3.834 16.993c-.156.44-1.579 1.442-2.193 1.554-.613.111-1.353-.021-3.69-1.077-2.825-1.277-4.66-4.225-4.801-4.417-.14-.191-1.144-1.523-1.144-2.905 0-1.383.71-2.062.96-2.342.25-.28.54-.35.719-.35.18 0 .36.002.518.009.167.009.431-.059.673.523.245.592.836 2.046.91 2.198.075.152.124.329.027.522-.095.194-.144.316-.289.485-.145.17-.306.376-.435.503-.142.14-.294.29-.126.58.167.288.747 1.233 1.601 1.99.106.945 2.052 1.458 2.342 1.598.29.141.457.126.629-.071.171-.194.742-.857.94-1.15.197-.294.394-.246.66-.145.266.1.168.795.192.934.024.138.077.44-.079.88z" /></svg>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-gray)', fontWeight: 600 }}>WhatsApp</span>
+              </button>
+
+              <button
+                onClick={() => window.open(`mailto:?subject=${encodeURIComponent('KSM Real Estate - ' + bien.nom)}&body=${encodeURIComponent('Découvrez ce bien exceptionnel sur KSM : ' + window.location.href)}`, '_self')}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+                title="Partager par Email"
+              >
+                <div style={{ background: '#EA4335', padding: '6px', borderRadius: '50%' }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M2.5 4.5A2.5 2.5 0 0 0 0 7v10a2.5 2.5 0 0 0 2.5 2.5h19A2.5 2.5 0 0 0 24 17V7a2.5 2.5 0 0 0-2.5-2.5h-19zm0 2h19c.145 0 .285.038.406.108l-9.52 6.545a.75.75 0 0 1-.772 0L2.1 6.6A2.483 2.483 0 0 0 2.5 6.5zm-1 3.2v7.3c0 .276.224.5.5.5h19a.5.5 0 0 0 .5-.5v-7.3l-8.6 5.91a2.25 2.25 0 0 1-2.8 0L1.5 9.7z" /></svg>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-gray)', fontWeight: 600 }}>Email</span>
+              </button>
+
+              <button
+                onClick={handleLike}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+              >
+                <Heart size={28} fill={isLiked ? 'var(--accent-orange)' : 'transparent'} color={isLiked ? 'var(--accent-orange)' : 'var(--text-gray)'} />
+                <span style={{ fontSize: '13px', color: isLiked ? 'var(--accent-orange)' : 'var(--text-gray)', fontWeight: 600 }}>{bien.likes}</span>
+              </button>
+            </div>
           </div>
 
           {/* Specs */}
@@ -352,6 +420,30 @@ export default function PropertyDetailsPage() {
             ))}
           </div>
 
+          {/* Owner Info */}
+          {ownerSummary && (
+            <div className="glass-card" style={{ marginBottom: '32px', padding: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ background: 'linear-gradient(135deg, var(--accent-orange), #7c3aed)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={28} color="white" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: 0, color: 'var(--text-white)', fontSize: '18px', fontWeight: 700 }}>
+                  {ownerSummary.firstName} {ownerSummary.lastName}
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: 'var(--text-gray)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>Propriétaire KSM</span>
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {ownerSummary.phoneNumber && (
+                  <button onClick={() => window.open(`tel:${ownerSummary.phoneNumber}`)} style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                    <Phone size={16} /> Contacter
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           <div style={{ marginBottom: '32px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-white)', marginBottom: '12px' }}>Description</h3>
@@ -365,6 +457,13 @@ export default function PropertyDetailsPage() {
             </h3>
             <PropertyMap latitude={bien.latitude} longitude={bien.longitude} nom={bien.nom} adresse={bien.localisation} />
           </div>
+
+          {/* Virtual Visit 360 */}
+          {virtualImages && virtualImages.length > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <VirtualVisitViewer images={virtualImages} />
+            </div>
+          )}
 
           {/* Comments */}
           <div>
@@ -501,12 +600,27 @@ export default function PropertyDetailsPage() {
           {/* Contact Propriétaire */}
           {(() => {
             const prop = proprietaires.find(p => p.id === bien.proprietaireId);
-            if (!prop) return null;
+            if (!ownerSummary && !prop) return null;
+
+            const displayNom = ownerSummary?.nom || prop?.nom || '—';
+            const displayEmail = ownerSummary?.email || prop?.email || '';
+            const displayNumero = ownerSummary?.numero || prop?.numero || '';
+            const displayId = ownerSummary?.id || bien.proprietaireId;
+            const displayNote = ownerSummary?.note || 4.5;
+
             return (
               <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  📞 Contact Propriétaire
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    📞 Contact Propriétaire
+                  </p>
+                  {ownerSummary && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(250,204,21,0.1)', color: '#facc15', padding: '2px 8px', borderRadius: 999, fontSize: '11px', fontWeight: 700 }}>
+                      <Star size={12} fill="#facc15" /> {displayNote}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{
                     width: '36px',
@@ -521,22 +635,22 @@ export default function PropertyDetailsPage() {
                     <User size={16} style={{ color: 'var(--accent-orange)' }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-white)' }}>{prop.nom}</p>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>ID: {prop.id}</p>
+                    <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-white)' }}>{displayNom}</p>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>ID: {displayId}</p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
-                  {prop.email && (
-                    <a href={`mailto:${prop.email}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
+                  {displayEmail && (
+                    <a href={`mailto:${displayEmail}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
                       <Mail size={13} style={{ color: 'var(--accent-orange)' }} />
-                      <span style={{ fontSize: '13px' }}>{prop.email}</span>
+                      <span style={{ fontSize: '13px' }}>{displayEmail}</span>
                     </a>
                   )}
-                  {prop.numero && (
-                    <a href={`tel:${prop.numero}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
+                  {displayNumero && (
+                    <a href={`tel:${displayNumero}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-gray)', fontSize: '13px', textDecoration: 'none' }}>
                       <Phone size={13} style={{ color: 'var(--accent-orange)' }} />
-                      <span style={{ fontSize: '13px' }}>{prop.numero}</span>
+                      <span style={{ fontSize: '13px' }}>{displayNumero}</span>
                     </a>
                   )}
                 </div>

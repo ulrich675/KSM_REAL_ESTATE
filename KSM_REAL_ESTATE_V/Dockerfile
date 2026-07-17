@@ -8,7 +8,10 @@ WORKDIR /app
 
 # Install dependencies first (leverage layer cache)
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm ci
 
 # Copy code and configuration files
 COPY tsconfig.json next.config.ts eslint.config.mjs next-env.d.ts ./

@@ -11,11 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import java.math.BigDecimal;
+import com.ksm.realestate.application.port.out.UserRepositoryPort;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -28,12 +30,16 @@ public class PropertyServiceTest {
     @Mock
     private SearchPort searchPort;
 
+    @Mock
+    private UserRepositoryPort userRepositoryPort;
+
     private PropertyService propertyService;
     private Property testProperty;
 
     @BeforeEach
     public void setUp() {
-        propertyService = new PropertyService(propertyRepositoryPort, searchPort);
+        MockitoAnnotations.openMocks(this);
+        propertyService = new PropertyService(propertyRepositoryPort, searchPort, userRepositoryPort);
         testProperty = new Property();
         testProperty.setPropertyId(1L);
         testProperty.setTitle("Beautiful Apartment");

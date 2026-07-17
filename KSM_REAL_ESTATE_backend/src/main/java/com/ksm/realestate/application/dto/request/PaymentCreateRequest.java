@@ -30,4 +30,7 @@ public class PaymentCreateRequest {
 
     @NotNull
     private String currency;
+
+    @Builder.Default
+    private String type = "ACHAT";
 }

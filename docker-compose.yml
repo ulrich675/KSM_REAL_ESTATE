@@ -128,6 +128,10 @@ services:
       CORS_ALLOWED_ORIGINS: http://localhost:3000
     ports:
       - "8080:8080"
+    volumes:
+      - ksm-logs:/app/logs
+      - ./backend-storage/receipts:/app/receipts
+      - ./backend-storage/virtual-tours:/app/virtual-tours
     networks:
       - ksm_net
 
@@ -158,6 +162,9 @@ services:
 volumes:
   postgres_data:
   es_data:
+  postgres-data:
+  es-data:
+  ksm-logs:
 
     # ─── Réseau interne ──────────────────────────────────────────
 networks:

@@ -71,6 +71,7 @@ export const mockProprietaires: Proprietaire[] = [
   { id: 'prop-2', nom: 'Marcelle Ngo', numero: '+237 677 987 654', adresse: 'Bastos, Yaoundé', compteActif: true, email: 'marcelle@ksm.cm', mdp: 'marcelle123' },
   { id: 'prop-3', nom: 'Donald Tchameni', numero: '+237 695 555 444', adresse: 'Bonapriso, Douala', compteActif: true, email: 'donald@ksm.cm', mdp: 'donald123' },
   { id: 'prop-4', nom: 'Sarah Bell', numero: '+237 670 111 222', adresse: 'Golf, Yaoundé', compteActif: false, email: 'sarah@ksm.cm', mdp: 'sarah123' },
+  { id: 'prop-5', nom: 'Jean', numero: '+237 658 554 585', adresse: 'Douala', compteActif: false, email: 'jules@ksm.cm', mdp: 'jean123' },
 ];
 
 export const mockClients: Client[] = [

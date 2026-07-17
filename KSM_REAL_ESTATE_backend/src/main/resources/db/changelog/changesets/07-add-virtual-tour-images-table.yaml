@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 07-add-virtual-tour-images-table
+      author: ulrich675
+      changes:
+        - createTable:
+            tableName: virtual_tour_images
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: property_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_virtual_tour_property
+                    references: properties(property_id)
+              - column:
+                  name: room_label
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_order
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

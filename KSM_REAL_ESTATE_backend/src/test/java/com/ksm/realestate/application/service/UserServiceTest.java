@@ -2,6 +2,7 @@ package com.ksm.realestate.application.service;
 
 import com.ksm.realestate.application.port.out.KernelCoreAuthPort;
 import com.ksm.realestate.application.port.out.UserRepositoryPort;
+import com.ksm.realestate.application.port.out.ProprietorRequestRepositoryPort;
 import com.ksm.realestate.domain.exception.UserNotFoundException;
 import com.ksm.realestate.domain.model.KernelAuthResult;
 import com.ksm.realestate.domain.model.Role;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -25,12 +27,16 @@ public class UserServiceTest {
     @Mock
     private KernelCoreAuthPort kernelCoreAuthPort;
 
+    @Mock
+    private ProprietorRequestRepositoryPort proprietorRequestRepositoryPort;
+
     private UserService userService;
     private User testUser;
 
     @BeforeEach
     public void setUp() {
-        userService = new UserService(userRepositoryPort, kernelCoreAuthPort);
+        MockitoAnnotations.openMocks(this);
+        userService = new UserService(userRepositoryPort, kernelCoreAuthPort, proprietorRequestRepositoryPort);
         testUser = new User();
         testUser.setUserId(1L);
         testUser.setEmail("test@ksm.com");
@@ -82,17 +88,18 @@ public class UserServiceTest {
     }
 
     @Test
-    public void testRequestProprietorRole_Success() {
+    public void testRequestProprietorRole() {
+        testUser.setRole(Role.CLIENT);
         Mockito.when(userRepositoryPort.findById(1L)).thenReturn(Mono.just(testUser));
-        Mockito.when(userRepositoryPort.save(any(User.class))).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            return Mono.just(u);
-        });
+        Mockito.when(proprietorRequestRepositoryPort.save(any()))
+                .thenReturn(Mono.just(new com.ksm.realestate.domain.model.ProprietorRequest()));
+        Mockito.when(userRepositoryPort.save(any(User.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
-        Mono<User> result = userService.requestProprietorRole(1L);
+        Mono<User> result = userService.submitProprietorRequest(1L, "123", "Addr", "Motiv");
 
         StepVerifier.create(result)
-                .expectNextMatches(u -> u.getRole() == Role.PROPRIETOR_PENDING)
+                .expectNextMatches(user -> user.getRole().equals(Role.PROPRIETOR_PENDING))
                 .verifyComplete();
     }
 }

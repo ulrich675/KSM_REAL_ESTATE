@@ -48,4 +48,10 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     public Mono<Void> deleteById(Long paymentId) {
         return repository.deleteById(paymentId);
     }
+
+    @Override
+    public Mono<Boolean> hasCompletedVirtualVisitPurchase(Long userId, Long propertyId) {
+        return repository.existsByUserIdAndPropertyIdAndTypeAndStatus(userId, propertyId, "VISITE_VIRTUELLE",
+                "COMPLETED");
+    }
 }

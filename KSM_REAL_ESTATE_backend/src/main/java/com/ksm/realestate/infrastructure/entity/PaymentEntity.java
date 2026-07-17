@@ -42,6 +42,9 @@ public class PaymentEntity {
     @Column("receipt_pdf_url")
     private String receiptPdfUrl;
 
+    @Column("type")
+    private String type;
+
     public Long getPaymentId() {
         return paymentId;
     }
@@ -104,5 +107,13 @@ public class PaymentEntity {
 
     public void setReceiptPdfUrl(String receiptPdfUrl) {
         this.receiptPdfUrl = receiptPdfUrl;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

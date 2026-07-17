@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 08-add-type-to-payments
+      author: ulrich675
+      changes:
+        - addColumn:
+            tableName: payments
+            columns:
+              - column:
+                  name: type
+                  type: varchar(50)
+                  defaultValue: ACHAT
+                  constraints:
+                    nullable: false

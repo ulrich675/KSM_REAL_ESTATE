@@ -72,6 +72,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
                     if (!localStorage.getItem('ksm_biens')) {
                         localStorage.setItem('ksm_biens', JSON.stringify(mockBiens));
+                    } else {
+                        try {
+                            const cached = JSON.parse(localStorage.getItem('ksm_biens') ?? '[]');
+                            if (Array.isArray(cached) && cached.some(b => !b || b.id === 'undefined' || isNaN(Number(b.prix)))) {
+                                console.warn('[KSM] AppCtx: Clearing corrupted local property cache.');
+                                localStorage.setItem('ksm_biens', JSON.stringify(mockBiens));
+                            }
+                        } catch (_) { }
                     }
                     if (!localStorage.getItem('ksm_proprietaires')) {
                         localStorage.setItem('ksm_proprietaires', JSON.stringify(mockProprietaires));

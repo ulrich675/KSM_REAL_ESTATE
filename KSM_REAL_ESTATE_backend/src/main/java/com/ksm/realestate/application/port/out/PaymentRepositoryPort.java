@@ -19,4 +19,6 @@ public interface PaymentRepositoryPort {
     Flux<Payment> findAll();
 
     Mono<Void> deleteById(Long paymentId);
+
+    Mono<Boolean> hasCompletedVirtualVisitPurchase(Long userId, Long propertyId);
 }

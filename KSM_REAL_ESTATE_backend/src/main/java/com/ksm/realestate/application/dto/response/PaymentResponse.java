@@ -27,4 +27,5 @@ public class PaymentResponse {
     private Instant paidAt;
     private String status;
     private String receiptPdfUrl; // Mock URL for receipt download
+    private String type;
 }

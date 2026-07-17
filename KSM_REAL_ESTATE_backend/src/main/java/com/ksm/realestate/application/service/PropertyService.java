@@ -10,6 +10,9 @@ import com.ksm.realestate.application.port.out.SearchPort;
 import com.ksm.realestate.domain.exception.PropertyNotFoundException;
 import com.ksm.realestate.domain.model.Property;
 import com.ksm.realestate.domain.spec.PropertySpecification;
+import com.ksm.realestate.application.port.out.UserRepositoryPort;
+import com.ksm.realestate.application.dto.response.OwnerSummaryResponse;
+import com.ksm.realestate.domain.model.User;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +37,7 @@ public class PropertyService implements
 
     private final PropertyRepositoryPort propertyRepositoryPort;
     private final SearchPort searchPort;
+    private final UserRepositoryPort userRepositoryPort;
 
     @Override
     public Mono<Property> create(Property property) {
@@ -41,6 +45,23 @@ public class PropertyService implements
         property.setCreatedAt(now);
         property.setUpdatedAt(now);
         return propertyRepositoryPort.save(property);
+    }
+
+    public Mono<OwnerSummaryResponse> getOwnerSummary(Long propertyId) {
+        return getById(propertyId)
+                .switchIfEmpty(Mono.error(new PropertyNotFoundException(propertyId)))
+                .flatMap(property -> userRepositoryPort.findById(property.getOwnerId()))
+                .map(user -> {
+                    String fullName = (user.getFirstName() != null ? user.getFirstName() : "") + " " +
+                            (user.getLastName() != null ? user.getLastName() : "");
+                    return OwnerSummaryResponse.builder()
+                            .id(user.getUserId())
+                            .nom(fullName.trim())
+                            .numero(user.getPhoneNumber())
+                            .email(user.getEmail())
+                            .note(4.8) // Mock rating
+                            .build();
+                });
     }
 
     @Override

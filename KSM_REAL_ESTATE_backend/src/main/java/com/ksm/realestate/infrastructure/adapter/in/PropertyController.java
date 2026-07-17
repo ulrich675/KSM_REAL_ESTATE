@@ -9,6 +9,7 @@ package com.ksm.realestate.infrastructure.adapter.in;
 
 import com.ksm.realestate.application.dto.request.PropertyCreateRequest;
 import com.ksm.realestate.application.dto.response.PropertyResponse;
+import com.ksm.realestate.application.dto.response.OwnerSummaryResponse;
 import com.ksm.realestate.application.service.PropertyService;
 import com.ksm.realestate.infrastructure.mapper.PropertyMapper;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,17 @@ public class PropertyController {
                         .data(response)
                         .timestamp(Instant.now())
                         .errors(null)
+                        .build());
+    }
+
+    @GetMapping("/{id}/owner")
+    public Mono<ApiResponse<OwnerSummaryResponse>> getPropertyOwner(@PathVariable("id") Long id) {
+        return propertyService.getOwnerSummary(id)
+                .map(response -> ApiResponse.<OwnerSummaryResponse>builder()
+                        .status("SUCCESS")
+                        .message("Owner details retrieved")
+                        .data(response)
+                        .timestamp(Instant.now())
                         .build());
     }
 

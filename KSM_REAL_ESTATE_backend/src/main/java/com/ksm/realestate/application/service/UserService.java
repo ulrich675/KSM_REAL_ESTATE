@@ -5,7 +5,10 @@ import com.ksm.realestate.application.port.in.GetUserByEmailUseCase;
 import com.ksm.realestate.application.port.out.KernelCoreAuthPort;
 import com.ksm.realestate.application.port.out.UserRepositoryPort;
 import com.ksm.realestate.domain.exception.UserNotFoundException;
+import com.ksm.realestate.application.port.out.ProprietorRequestRepositoryPort;
 import com.ksm.realestate.domain.model.KernelSignUpCommand;
+import com.ksm.realestate.domain.model.ProprietorRequest;
+import com.ksm.realestate.domain.model.ProprietorRequestStatus;
 import com.ksm.realestate.domain.model.Role;
 import com.ksm.realestate.domain.model.User;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ public class UserService implements RegisterUserUseCase, GetUserByEmailUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final KernelCoreAuthPort kernelCoreAuthPort;
+    private final ProprietorRequestRepositoryPort proprietorRequestRepositoryPort;
 
     @Override
     public Mono<User> register(User user) {
@@ -82,22 +86,45 @@ public class UserService implements RegisterUserUseCase, GetUserByEmailUseCase {
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User not found with email: " + email)));
     }
 
-    public Mono<User> requestProprietorRole(Long userId) {
+    public Mono<User> submitProprietorRequest(Long userId, String phoneNumber, String address, String motivation) {
         return getUserById(userId)
                 .flatMap(user -> {
-                    user.setRole(Role.PROPRIETOR_PENDING);
-                    user.setUpdatedAt(Instant.now());
-                    return userRepositoryPort.save(user);
+                    ProprietorRequest req = ProprietorRequest.builder()
+                            .userId(userId)
+                            .phoneNumber(phoneNumber)
+                            .physicalAddress(address)
+                            .motivation(motivation)
+                            .status(ProprietorRequestStatus.PENDING)
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+
+                    return proprietorRequestRepositoryPort.save(req)
+                            .flatMap(savedReq -> {
+                                user.setRole(Role.PROPRIETOR_PENDING);
+                                user.setUpdatedAt(Instant.now());
+                                return userRepositoryPort.save(user);
+                            });
                 });
     }
 
-    public Mono<User> handleProprietorRequest(Long userId, boolean approved) {
-        return getUserById(userId)
+    public Mono<User> handleProprietorRequest(Long requestId, boolean approved) {
+        return proprietorRequestRepositoryPort.findById(requestId)
+                .flatMap(request -> {
+                    request.setStatus(approved ? ProprietorRequestStatus.APPROVED : ProprietorRequestStatus.REJECTED);
+                    request.setUpdatedAt(Instant.now());
+                    return proprietorRequestRepositoryPort.save(request);
+                })
+                .flatMap(updatedRequest -> getUserById(updatedRequest.getUserId()))
                 .flatMap(user -> {
                     user.setRole(approved ? Role.PROPRIETOR : Role.CLIENT);
                     user.setUpdatedAt(Instant.now());
                     return userRepositoryPort.save(user);
                 });
+    }
+
+    public Flux<ProprietorRequest> getAllProprietorRequests() {
+        return proprietorRequestRepositoryPort.findAll();
     }
 
     /**
